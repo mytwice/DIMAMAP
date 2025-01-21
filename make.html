@@ -1,440 +1,380 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>관리자 지도</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자용 지도</title>
     <style>
-        /* 기존 스타일 유지 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         #map-wrapper {
             width: 100%;
-            height: 800px;
-            overflow: hidden;
+            height: 100%;
             position: relative;
             border: 1px solid #ccc;
         }
+
         #map-container {
             position: absolute;
-            transform-origin: top left;
-            cursor: move;
+            transform-origin: 0 0;
+            cursor: grab;
+            width: 100%;
+            height: 100%;
         }
+
+        #map-container:active {
+            cursor: grabbing;
+        }
+
         #map-image {
             width: 1200px;
             height: 900px;
             user-select: none;
+            object-fit: cover;
         }
-        .pin {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            transform: translate(-50%, -100%);
-            z-index: 1000;
-            cursor: pointer;
-        }
-        .pin::before {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="red"><path d="M12 0C7.6 0 4 3.6 4 8c0 5.4 8 16 8 16s8-10.6 8-16c0-4.4-3.6-8-8-8zm0 12c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/></svg>') no-repeat center center;
-            background-size: contain;
-        }
-        #controls {
+
+        .control-panel {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 80%;
+            transform: translateX(-50%);
+            width: 20%;
+            max-width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 9999;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-panel h4 {
+            margin-top: 0;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .button {
+            padding: 10px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background: #1976D2;
+        }
+
+        .pin {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
             z-index: 1000;
+            cursor: pointer;
+        }
+
+        .pin-info {
+            position: fixed;
             background: white;
             padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            max-height: 80vh;
-            overflow-y: auto;
-            min-width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1001;
+            min-width: 250px;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
         }
-        #coordinates-list {
-            margin-top: 20px;
+
+        .pin-info h3 {
+            margin: 0;
+            font-size: 18px;
         }
-        #coordinates-list ul {
-            padding-left: 0;
+
+        .pin-info label {
+            font-weight: 600;
         }
-        #coordinates-list li {
-            list-style: none;
-            margin-bottom: 10px;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        .pin-form {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .pin-form select, .pin-form input, .pin-form textarea {
+
+        .pin-info input, .pin-info select, .pin-info textarea {
             width: 100%;
-            margin-bottom: 10px;
-            padding: 5px;
-        }
-        .pin-form textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-        .pin-form label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        #import-form {
             margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-        button {
             padding: 5px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .zoom-button {
+            padding: 10px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: 500;
         }
-        .selected {
-            background-color: #e0e0e0;
-        }
-        .coordinates-item {
-            cursor: pointer;
-            padding: 8px;
-            border: 1px solid #ddd;
-            margin-bottom: 5px;
-            border-radius: 4px;
-        }
-        .coordinates-item:hover {
-            background-color: #f5f5f5;
+
+        .zoom-button:hover {
+            background: #1976D2;
         }
     </style>
 </head>
 <body>
+    <div class="control-panel">
+        <h4>관리자 도구</h4>
+        <div class="button-group">
+            <button id="add-pin-button" class="button">핀 추가 모드</button>
+            <button id="move-map-button" class="button">이동 모드</button>
+            <button id="copy-data-button" class="button">데이터 복사</button>
+        </div>
+        <textarea id="pin-data" readonly placeholder="핀 데이터를 여기에 복사"></textarea>
+    </div>
+
     <div id="map-wrapper">
         <div id="map-container">
             <img id="map-image" src="map.png" alt="지도" draggable="false">
         </div>
     </div>
-    <div id="controls">
-        <div class="button-group">
-            <button onclick="setMode('move')">이동 모드</button>
-            <button onclick="setMode('pin')">핀 지정 모드</button>
-            <button onclick="deleteSelectedPin()">선택 핀 삭제</button>
-            <button onclick="clearPins()">초기화</button>
-        </div>
-        
-        <div id="import-form">
-            <label for="import-data">데이터 불러오기:</label>
-            <textarea id="import-data" rows="4" style="width: 100%; margin-bottom: 10px;"></textarea>
-            <button onclick="importData()">불러오기</button>
-        </div>
 
-        <div id="pin-details" class="pin-form" style="display: none;">
-            <h3>핀 상세 정보</h3>
-            <label for="building-select">건물:</label>
-            <select id="building-select">
-                <option value="">선택하세요</option>
-                <option value="A동">A동</option>
-                <option value="B동">B동</option>
-                <option value="C동">C동</option>
-            </select>
 
-            <label for="floor-select">층:</label>
-            <select id="floor-select">
-                <option value="">선택하세요</option>
-                <option value="1층">1층</option>
-                <option value="2층">2층</option>
-                <option value="3층">3층</option>
-                <option value="4층">4층</option>
-                <option value="5층">5층</option>
-            </select>
 
-            <label for="category-select">카테고리:</label>
-            <select id="category-select">
-                <option value="">선택하세요</option>
-                <option value="화장실">화장실</option>
-                <option value="계단">계단</option>
-                <option value="엘리베이터">엘리베이터</option>
-                <option value="출입구">출입구</option>
-                <option value="사무실">사무실</option>
-            </select>
+    <!-- 핀 상세 정보 입력 폼 -->
+    <div class="pin-info" id="pin-info">
+        <h3>핀 상세 정보</h3>
+        <label for="building-select">건물:</label>
+        <select id="building-select">
+            <option value="">선택하세요</option>
+            <option value="지성관">지성관</option>
+            <option value="기예관">기예관</option>
+            <option value="덕성관">덕성관</option>
+        </select>
 
-            <label for="pin-name">이름:</label>
-            <input type="text" id="pin-name">
+        <label for="floor-select">층:</label>
+        <select id="floor-select">
+            <option value="">선택하세요</option>
+            <option value="실외">실외</option>
+            <option value="B1층">B1층</option>
+            <option value="1층">1층</option>
+            <option value="2층">2층</option>
+            <option value="3층">3층</option>
+            <option value="4층">4층</option>
+            <option value="5층">5층</option>
+        </select>
 
-            <label for="location-description">장소 설명:</label>
-            <textarea id="location-description" placeholder="장소에 대한 상세 설명을 입력하세요"></textarea>
+        <label for="category-select">카테고리:</label>
+        <select id="category-select">
+            <option value="">선택하세요</option>
+            <option value="화장실">화장실</option>
+            <option value="계단">계단</option>
+            <option value="실습실">실습실</option>
+            <option value="강의실">강의실</option>
+            <option value="자판기">자판기</option>
+            <option value="교수연구실">교수연구실</option>
+            <option value="엘리베이터">엘리베이터</option>
+            <option value="출입구">출입구</option>
+            <option value="사무실">사무실</option>
+        </select>
 
-            <label for="address">주소:</label>
-            <input type="text" id="address" placeholder="주소를 입력하세요">
+        <label for="pin-name">이름:</label>
+        <input type="text" id="pin-name">
 
-            <button onclick="updatePinDetails()">저장</button>
-        </div>
+        <label for="location-description">장소 설명:</label>
+        <textarea id="location-description" placeholder="장소에 대한 상세 설명을 입력하세요"></textarea>
 
-        <div id="coordinates-list">
-            <h3>저장된 좌표</h3>
-            <button onclick="exportData()">내보내기</button>
-            <ul id="saved-coordinates"></ul>
+        <label for="address">주소:</label>
+        <input type="text" id="address" placeholder="주소를 입력하세요">
+
+        <div>
+            <button id="save-pin-details" class="button">저장</button>
+            <button id="delete-pin" class="button" style="background-color: red;">삭제</button>
         </div>
     </div>
 
     <script>
         const mapWrapper = document.getElementById('map-wrapper');
         const mapContainer = document.getElementById('map-container');
-        const savedCoordinatesList = document.getElementById('saved-coordinates');
-        const pinDetailsForm = document.getElementById('pin-details');
+        const addPinButton = document.getElementById('add-pin-button');
+        const moveMapButton = document.getElementById('move-map-button');
+        const copyDataButton = document.getElementById('copy-data-button');
+        const pinDataTextarea = document.getElementById('pin-data');
+        const zoomInButton = document.getElementById('zoom-in');
+        const zoomOutButton = document.getElementById('zoom-out');
+        const pinInfo = document.getElementById('pin-info');
+        const savePinDetailsButton = document.getElementById('save-pin-details');
+        const deletePinButton = document.getElementById('delete-pin');
+        const buildingSelect = document.getElementById('building-select');
+        const floorSelect = document.getElementById('floor-select');
+        const categorySelect = document.getElementById('category-select');
+        const pinNameInput = document.getElementById('pin-name');
+        const locationDescriptionInput = document.getElementById('location-description');
+        const addressInput = document.getElementById('address');
+
         let pins = [];
-        let isDragging = false;
+        let isAddMode = false;
+        let isMoveMode = false;
+        let scale = 1;
+        let currentPin = null;  // 현재 선택된 핀
         let startX, startY;
-        let currentTranslateX = 0, currentTranslateY = 0, currentScale = 1;
-        let mode = 'move';
-        let selectedPin = null;
 
-        function setMode(newMode) {
-            mode = newMode;
-            selectedPin = null;
-            document.querySelectorAll('.pin').forEach(pin => pin.classList.remove('selected'));
-            pinDetailsForm.style.display = 'none';
-        }
+        addPinButton.addEventListener('click', () => {
+            isAddMode = !isAddMode;
+            addPinButton.textContent = isAddMode ? '핀 추가 중...' : '핀 추가 모드';
+        });
 
-        function updateMapTransform() {
-            const maxX = (mapWrapper.offsetWidth - mapContainer.offsetWidth * currentScale);
-            const maxY = (mapWrapper.offsetHeight - mapContainer.offsetHeight * currentScale);
-            
-            currentTranslateX = Math.min(0, Math.max(currentTranslateX, maxX));
-            currentTranslateY = Math.min(0, Math.max(currentTranslateY, maxY));
-            
-            mapContainer.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
-        }
+        moveMapButton.addEventListener('click', () => {
+            isMoveMode = !isMoveMode;
+            moveMapButton.textContent = isMoveMode ? '이동 중...' : '이동 모드';
+            if (isMoveMode) {
+                mapContainer.style.cursor = 'grab';
+                mapContainer.addEventListener('mousedown', startMove);
+            } else {
+                mapContainer.style.cursor = 'default';
+                mapContainer.removeEventListener('mousedown', startMove);
+            }
+        });
 
-        mapContainer.addEventListener('mousedown', (e) => {
-            if (mode !== 'move') return;
-            isDragging = true;
+        function startMove(e) {
+            if (!isMoveMode) return;
             startX = e.clientX;
             startY = e.clientY;
-        });
+            mapContainer.addEventListener('mousemove', moveMap);
+            mapContainer.addEventListener('mouseup', stopMove);
+        }
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            
-            currentTranslateX += deltaX;
-            currentTranslateY += deltaY;
-            
+        function moveMap(e) {
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            mapContainer.style.left = `${mapContainer.offsetLeft + dx}px`;
+            mapContainer.style.top = `${mapContainer.offsetTop + dy}px`;
             startX = e.clientX;
             startY = e.clientY;
-            
-            updateMapTransform();
+        }
+
+        function stopMove() {
+            mapContainer.removeEventListener('mousemove', moveMap);
+            mapContainer.removeEventListener('mouseup', stopMove);
+        }
+
+        mapWrapper.addEventListener('click', (e) => {
+            if (isAddMode) {
+                const rect = mapContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const pin = createPin(x, y);
+                pins.push({
+                    x: x.toFixed(2),
+                    y: y.toFixed(2),
+                    building: '',
+                    floor: '',
+                    category: '',
+                    name: '',
+                    description: '',
+                    address: ''
+                });
+                updatePinData();
+            }
         });
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
-        mapWrapper.addEventListener('wheel', function(e) {
-            e.preventDefault();
-            const rect = mapContainer.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
-            const beforeX = mouseX / currentScale;
-            const beforeY = mouseY / currentScale;
-
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            currentScale = Math.min(Math.max(1, currentScale * delta), 10);
-
-            const afterX = mouseX / currentScale;
-            const afterY = mouseY / currentScale;
-
-            currentTranslateX += (afterX - beforeX) * currentScale;
-            currentTranslateY += (afterY - beforeY) * currentScale;
-
-            updateMapTransform();
-        });
-
-        mapWrapper.addEventListener('click', function(e) {
-            if (isDragging || mode !== 'pin') return;
-
-            const rect = mapContainer.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / currentScale).toFixed(2);
-            const y = ((e.clientY - rect.top) / currentScale).toFixed(2);
-
-            createPin(x, y);
-            updateCoordinatesList();
-        });
-
-        function createPin(x, y, details = {}) {
+        function createPin(x, y) {
             const pin = document.createElement('div');
             pin.className = 'pin';
             pin.style.left = `${x}px`;
             pin.style.top = `${y}px`;
 
-            pin.addEventListener('click', function(e) {
+            pin.addEventListener('click', (e) => {
                 e.stopPropagation();
-                selectPin(pin);
-            });
-
-            pin.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                deletePin(pin);
+                selectPin(pin, x, y);
             });
 
             mapContainer.appendChild(pin);
-            pins.push({
-                pin,
-                coordinates: { x, y },
-                building: details.building || '',
-                floor: details.floor || '',
-                category: details.category || '',
-                name: details.name || '',
-                description: details.description || '',
-                address: details.address || ''
-            });
-
-            selectPin(pin);
+            return pin;
         }
 
-        function selectPin(pin) {
-            document.querySelectorAll('.pin').forEach(p => p.classList.remove('selected'));
-            pin.classList.add('selected');
-            selectedPin = pin;
-            showPinDetails(pins.find(p => p.pin === pin));
+        function selectPin(pin, x, y) {
+            currentPin = pin;
+            const pinIndex = pins.findIndex(p => p.x === x.toFixed(2) && p.y === y.toFixed(2));
+            const pinDetails = pins[pinIndex];
+
+            buildingSelect.value = pinDetails.building;
+            floorSelect.value = pinDetails.floor;
+            categorySelect.value = pinDetails.category;
+            pinNameInput.value = pinDetails.name;
+            locationDescriptionInput.value = pinDetails.description;
+            addressInput.value = pinDetails.address;
+
+            pinInfo.style.display = 'block';
+
+            savePinDetailsButton.onclick = () => {
+                pinDetails.building = buildingSelect.value;
+                pinDetails.floor = floorSelect.value;
+                pinDetails.category = categorySelect.value;
+                pinDetails.name = pinNameInput.value;
+                pinDetails.description = locationDescriptionInput.value;
+                pinDetails.address = addressInput.value;
+
+                updatePinData();
+                pinInfo.style.display = 'none';
+            };
+
+            // 핀 삭제 버튼
+            deletePinButton.onclick = () => {
+                pins.splice(pinIndex, 1);
+                mapContainer.removeChild(pin);
+                pinInfo.style.display = 'none';
+                updatePinData();
+            };
         }
 
-        function showPinDetails(pinData) {
-            pinDetailsForm.style.display = 'block';
-            document.getElementById('building-select').value = pinData.building || '';
-            document.getElementById('floor-select').value = pinData.floor || '';
-            document.getElementById('category-select').value = pinData.category || '';
-            document.getElementById('pin-name').value = pinData.name || '';
-            document.getElementById('location-description').value = pinData.description || '';
-            document.getElementById('address').value = pinData.address || '';
+        function updatePinData() {
+            pinDataTextarea.value = JSON.stringify(pins, null, 2);
         }
 
-        function updatePinDetails() {
-            if (!selectedPin) return;
-
-            const pinData = pins.find(p => p.pin === selectedPin);
-            if (!pinData) return;
-
-            pinData.building = document.getElementById('building-select').value;
-            pinData.floor = document.getElementById('floor-select').value;
-            pinData.category = document.getElementById('category-select').value;
-            pinData.name = document.getElementById('pin-name').value;
-            pinData.description = document.getElementById('location-description').value;
-            pinData.address = document.getElementById('address').value;
-
-            updateCoordinatesList();
-            savePinsToLocalStorage();
-        }
-
-        function deletePin(pin) {
-            pin.remove();
-            pins = pins.filter(p => p.pin !== pin);
-            if (selectedPin === pin) {
-                selectedPin = null;
-                pinDetailsForm.style.display = 'none';
-            }
-            updateCoordinatesList();
-            savePinsToLocalStorage();
-        }
-
-        function updateCoordinatesList() {
-            savedCoordinatesList.innerHTML = '';
-            pins.forEach((pin, index) => {
-                const li = document.createElement('li');
-                li.className = 'coordinates-item';
-                li.innerHTML = `
-                    <strong>${pin.name || `핀 ${index + 1}`}</strong><br>
-                    ${pin.building} ${pin.floor} ${pin.category}<br>
-                    ${pin.description ? `<small>설명: ${pin.description}</small><br>` : ''}
-                    ${pin.address ? `<small>주소: ${pin.address}</small><br>` : ''}
-                    <small>좌표: (X: ${pin.coordinates.x}, Y: ${pin.coordinates.y})</small>
-                `;
-                li.onclick = () => selectPin(pin.pin);
-                savedCoordinatesList.appendChild(li);
-            });
-        }
-
-        function deleteSelectedPin() {
-            if (selectedPin) {
-                deletePin(selectedPin);
-            } else {
-                alert('삭제할 핀을 선택하세요.');
-            }
-        }
-
-        function clearPins() {
-            pins.forEach(pin => pin.pin.remove());
-            pins = [];
-            selectedPin = null;
-            pinDetailsForm.style.display = 'none';
-            updateCoordinatesList();
-            localStorage.removeItem('mapPins');
-        }
-
-        function exportData() {
-            const exportData = pins.map(pin => ({
-                x: pin.coordinates.x,
-                y: pin.coordinates.y,
-                building: pin.building,
-                floor: pin.floor,
-                category: pin.category,
-                name: pin.name,
-                description: pin.description,
-                address: pin.address
-            }));
-
-            const jsonStr = JSON.stringify(exportData, null, 2);
-            navigator.clipboard.writeText(jsonStr).then(() => {
-                alert("데이터가 클립보드에 복사되었습니다!");
-            }).catch(err => {
-                alert("클립보드 복사 실패: " + err);
-            });
-        }
-
-        function importData() {
-            try {
-                const importText = document.getElementById('import-data').value;
-                const importedData = JSON.parse(importText);
-                
-                clearPins();
-                
-                importedData.forEach(data => {
-                    createPin(data.x, data.y, {
-                        building: data.building,
-                        floor: data.floor,
-                        category: data.category,
-                        name: data.name
-                    });
-                });
-                
-                updateCoordinatesList();
-                alert('데이터를 성공적으로 불러왔습니다!');
-            } catch (error) {
-                alert('데이터 형식이 올바르지 않습니다. JSON 형식을 확인해주세요.');
-            }
-        }
-
-        // 초기 저장된 데이터 로드
-        const savedPins = JSON.parse(localStorage.getItem('mapPins') || '[]');
-        savedPins.forEach(data => {
-            createPin(data.x, data.y, {
-                building: data.building,
-                floor: data.floor,
-                category: data.category,
-                name: data.name
+        copyDataButton.addEventListener('click', () => {
+            navigator.clipboard.writeText(pinDataTextarea.value).then(() => {
+                alert('핀 데이터가 클립보드에 복사되었습니다!');
             });
         });
-        updateCoordinatesList();
+
+        zoomInButton.addEventListener('click', () => {
+            scale += 0.1;
+            mapContainer.style.transform = `scale(${scale})`;
+        });
+
+        zoomOutButton.addEventListener('click', () => {
+            scale -= 0.1;
+            if (scale < 0.1) scale = 0.1;
+            mapContainer.style.transform = `scale(${scale})`;
+        });
+
     </script>
 </body>
 </html>
