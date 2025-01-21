@@ -322,23 +322,22 @@ let mode = 'move';
 let selectedPin = null;
 let activeInfoBox = null;
 let lastTouchDistance = 0;
+let zoomAnimation;
 
 // 맵 설정
 const mapConfig = {
-    initialScale: 2,
+    initialScale: 1.8,
     initialX: -0,
     initialY: -80,
-    minScale: 1.6,
+    minScale: 1.4,
     maxScale: 4,
-    zoomSpeed: 0.01,
-    // 모바일 설정 추가
+    zoomSpeed: 0.15,
     mobile: {
         initialScale: 0.75,
-        initialX: -150,  // 모바일에서의 시작 X 위치
-        initialY: -200   // 모바일에서의 시작 Y 위치
+        initialX: -150,
+        initialY: -200
     }
 };
-
 
 // 핀 데이터
 const pinsData = [
@@ -447,7 +446,7 @@ function initializeFilterOptions() {
     function populateFilter(filter, options) {
         filter.innerHTML = '<option value="">전체</option>';
         options.forEach(option => {
-            if (option) { // 빈 문자열이 아닌 경우에만 추가
+            if (option) {
                 filter.innerHTML += `<option value="${option}">${option}</option>`;
             }
         });
@@ -501,26 +500,28 @@ searchInput.addEventListener('input', function() {
     }
 });
 
-// 맵 업데이트 및 변환 함수
+// 맵 업데이트 함수
 function updateMapTransform() {
     const wrapperWidth = mapWrapper.offsetWidth;
     const wrapperHeight = mapWrapper.offsetHeight;
     const mapWidth = 1200 * currentScale;
     const mapHeight = 900 * currentScale;
     
-    if (mapWidth > wrapperWidth) {
-        currentTranslateX = Math.min(0, Math.max(currentTranslateX, wrapperWidth - mapWidth));
-    } else {
-        currentTranslateX = (wrapperWidth - mapWidth) / 2;
-    }
+    // 부드러운 경계 제한
+    const minX = Math.min(0, wrapperWidth - mapWidth);
+    const minY = Math.min(0, wrapperHeight - mapHeight);
     
-    if (mapHeight > wrapperHeight) {
-        currentTranslateY = Math.min(0, Math.max(currentTranslateY, wrapperHeight - mapHeight));
-    } else {
-        currentTranslateY = (wrapperHeight - mapHeight) / 2;
-    }
+    currentTranslateX = Math.max(minX, Math.min(0, currentTranslateX));
+    currentTranslateY = Math.max(minY, Math.min(0, currentTranslateY));
     
     mapContainer.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
+    
+    // 핀 정보창 위치 업데이트
+    if (activeInfoBox && selectedPin) {
+        const pinRect = selectedPin.getBoundingClientRect();
+        activeInfoBox.style.left = `${pinRect.left}px`;
+        activeInfoBox.style.top = `${pinRect.top - 100}px`;
+    }
 }
 
 // 핀 생성 함수
@@ -546,7 +547,7 @@ function createPin(x, y, details = {}) {
 // 핀 정보창 표시 함수
 function showPinInfoBox(pin, pinData) {
     if (activeInfoBox) {
-        activeInfoBox.style.display = 'none';
+        activeInfoBox.remove();
     }
 
     const pinRect = pin.getBoundingClientRect();
@@ -554,7 +555,7 @@ function showPinInfoBox(pin, pinData) {
     infoBox.className = 'pin-info-box';
     
     infoBox.style.left = `${pinRect.left}px`;
-    infoBox.style.top = `${pinRect.top - 120}px`;
+    infoBox.style.top = `${pinRect.top - 100}px`;
 
     const closeBtn = document.createElement('span');
     closeBtn.className = 'close-btn';
@@ -592,6 +593,16 @@ function showPinInfoBox(pin, pinData) {
     if (infoBoxRect.right > window.innerWidth) {
         infoBox.style.left = `${window.innerWidth - infoBoxRect.width - 10}px`;
     }
+
+        // 클릭 이벤트 리스너
+        closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        infoBox.remove();
+        activeInfoBox = null;
+        selectedPin = null;
+    });
+
+    infoBox.appendChild(closeBtn);
 }
 
 // 필터링 함수
@@ -629,24 +640,23 @@ function moveToPin(pin) {
 }
 
 // 부드러운 줌 함수
-let zoomAnimation;
 function smoothZoom(targetScale, mouseX, mouseY) {
+    const startScale = currentScale;
+    const scaleDiff = targetScale - startScale;
+    const duration = 200; // 더 빠른 줌 속도
+    
     if (zoomAnimation) {
         cancelAnimationFrame(zoomAnimation);
     }
 
-    const startScale = currentScale;
-    const scaleDiff = targetScale - startScale;
     const startTime = performance.now();
-    const duration = 300;
-
+    
     function animate(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        const easeProgress = progress < 0.5 
-            ? 2 * progress * progress 
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        // easeOutQuad 이징 함수 사용
+        const easeProgress = 1 - (1 - progress) * (1 - progress);
         
         const newScale = startScale + (scaleDiff * easeProgress);
         
@@ -701,17 +711,25 @@ document.addEventListener('mousemove', (e) => {
     startY = e.clientY;
     
     updateMapTransform();
-
-    if (activeInfoBox && selectedPin) {
-        const pinRect = selectedPin.getBoundingClientRect();
-        activeInfoBox.style.left = `${pinRect.left}px`;
-        activeInfoBox.style.top = `${pinRect.top - 120}px`;
-    }
 });
 
 document.addEventListener('mouseup', () => {
     isDragging = false;
     mapContainer.style.cursor = 'grab';
+});
+
+// X키 이벤트 리스너
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'x' || e.key === 'X') {
+        if (activeInfoBox) {
+            activeInfoBox.style.display = 'none';
+            activeInfoBox = null;
+        }
+        if (searchResults.style.display === 'block') {
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+        }
+    }
 });
 
 mapWrapper.addEventListener('wheel', function(e) {
@@ -729,79 +747,80 @@ mapWrapper.addEventListener('wheel', function(e) {
     const wrapperAspectRatio = wrapperWidth / wrapperHeight;
     
     let minScale;
-   if (wrapperAspectRatio > imageAspectRatio) {
-       minScale = wrapperHeight / 900;
-   } else {
-       minScale = wrapperWidth / 1200;
-   }
-   
-   if (targetScale >= minScale) {
-       smoothZoom(targetScale, mouseX, mouseY);
-   }
-});
-
-mapWrapper.addEventListener('click', function() {
-   if (activeInfoBox) {
-       activeInfoBox.style.display = 'none';
-       activeInfoBox = null;
-   }
-   searchResults.style.display = 'none';
-   searchInput.value = '';
+    if (wrapperAspectRatio > imageAspectRatio) {
+        minScale = wrapperHeight / 900;
+    } else {
+        minScale = wrapperWidth / 1200;
+    }
+    
+    if (targetScale >= minScale) {
+        smoothZoom(targetScale, mouseX, mouseY);
+    }
 });
 
 // 터치 이벤트
 mapContainer.addEventListener('touchstart', function(e) {
-   if (e.touches.length === 2) {
-       e.preventDefault();
-       lastTouchDistance = getTouchDistance(e.touches);
-   } else if (e.touches.length === 1) {
-       startX = e.touches[0].clientX;
-       startY = e.touches[0].clientY;
-   }
+    if (e.touches.length === 2) {
+        e.preventDefault();
+        lastTouchDistance = getTouchDistance(e.touches);
+    } else if (e.touches.length === 1) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }
 }, { passive: false });
 
 mapContainer.addEventListener('touchmove', function(e) {
-   e.preventDefault();
-   
-   if (e.touches.length === 2) {
-       const currentDistance = getTouchDistance(e.touches);
-       const delta = (currentDistance - lastTouchDistance) / 100;
-       
-       const rect = mapContainer.getBoundingClientRect();
-       const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-       const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-       
-       const targetScale = Math.min(Math.max(mapConfig.minScale, currentScale * (1 + delta)), mapConfig.maxScale);
-       smoothZoom(targetScale, centerX, centerY);
-       
-       lastTouchDistance = currentDistance;
-   } else if (e.touches.length === 1 && startX !== undefined && startY !== undefined) {
-       const deltaX = e.touches[0].clientX - startX;
-       const deltaY = e.touches[0].clientY - startY;
-       
-       currentTranslateX += deltaX;
-       currentTranslateY += deltaY;
-       
-       startX = e.touches[0].clientX;
-       startY = e.touches[0].clientY;
-       
-       updateMapTransform();
-   }
+    e.preventDefault();
+    
+    if (e.touches.length === 2) {
+        const currentDistance = getTouchDistance(e.touches);
+        const delta = (currentDistance - lastTouchDistance) / 100;
+        
+        const rect = mapContainer.getBoundingClientRect();
+        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+        
+        const targetScale = Math.min(Math.max(mapConfig.minScale, currentScale * (1 + delta)), mapConfig.maxScale);
+        smoothZoom(targetScale, centerX, centerY);
+        
+        lastTouchDistance = currentDistance;
+    } else if (e.touches.length === 1 && startX !== undefined && startY !== undefined) {
+        const deltaX = e.touches[0].clientX - startX;
+        const deltaY = e.touches[0].clientY - startY;
+        currentTranscurrentTranslateX += deltaX;
+        currentTranslateY += deltaY;
+        
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        
+        updateMapTransform();
+    }
 }, { passive: false });
 
 mapContainer.addEventListener('touchend', function(e) {
-   startX = undefined;
-   startY = undefined;
-   lastTouchDistance = 0;
+    startX = undefined;
+    startY = undefined;
+    lastTouchDistance = 0;
 }, { passive: false });
 
+// 클릭 이벤트로 정보창과 검색결과 닫기
+mapWrapper.addEventListener('click', function() {
+    if (activeInfoBox) {
+        activeInfoBox.style.display = 'none';
+        activeInfoBox = null;
+    }
+    searchResults.style.display = 'none';
+    searchInput.value = '';
+});
+
+// 윈도우 리사이즈 이벤트
 window.addEventListener('resize', function() {
-   updateMapTransform();
-   if (activeInfoBox && selectedPin) {
-       const pinRect = selectedPin.getBoundingClientRect();
-       activeInfoBox.style.left = `${pinRect.left}px`;
-       activeInfoBox.style.top = `${pinRect.top - 120}px`;
-   }
+    updateMapTransform();
+    if (activeInfoBox && selectedPin) {
+        const pinRect = selectedPin.getBoundingClientRect();
+        activeInfoBox.style.left = `${pinRect.left}px`;
+        activeInfoBox.style.top = `${pinRect.top - 100}px`;
+    }
 });
 
 // 앱 초기화
@@ -833,23 +852,28 @@ function initializeMap() {
     updateMapTransform();
 }
 
+// 필터 설정
 function setupFilters() {
-   const filters = ['building-filter', 'floor-filter', 'category-filter'];
-   filters.forEach(filterId => {
-       document.getElementById(filterId).addEventListener('change', filterPins);
-   });
+    const filters = ['building-filter', 'floor-filter', 'category-filter'];
+    filters.forEach(filterId => {
+        document.getElementById(filterId).addEventListener('change', filterPins);
+    });
 }
 
+// DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
-   initializeMap();
-   initializeFilterOptions();
-   setupFilters();
-   pinsData.forEach(pinData => createPin(pinData.x, pinData.y, pinData));
-   
-   const applyButton = document.getElementById('apply-filters');
-   if (applyButton) {
-       applyButton.remove();
-   }
+    initializeMap();
+    initializeFilterOptions();
+    setupFilters();
+    
+    // 모든 핀 생성
+    pinsData.forEach(pinData => createPin(pinData.x, pinData.y, pinData));
+    
+    // 불필요한 필터 적용 버튼 제거
+    const applyButton = document.getElementById('apply-filters');
+    if (applyButton) {
+        applyButton.remove();
+    }
 });
     </script>
 </body>
