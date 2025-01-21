@@ -222,50 +222,31 @@
         }
 
         @media (max-width: 768px) {
-    .control-panel {
-        padding: 15px;
-        font-size: 14px;
-    }
-    
-    .search-input {
-        font-size: 16px; /* iOS에서 자동 확대 방지 */
-        padding: 8px;
-    }
-    
-    .filter-select {
-        font-size: 16px;
-        padding: 8px;
-    }
-    
-    .pin {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .pin-info-box {
-        max-width: 280px;
-        font-size: 13px;
-    }
-}
+            .control-panel {
+                width: calc(100% - 40px);
+                max-width: 300px;
+                top: auto;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                max-height: 50vh;
+                overflow-y: auto;
+            }
 
-/* 터치 디바이스에서 선택 방지 */
-* {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
+            .search-results {
+                max-height: 150px;
+            }
 
-input, textarea {
-    -webkit-user-select: text;
-    -khtml-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-}
+            .pin {
+                width: 24px;
+                height: 24px;
+            }
+
+            .pin::before {
+                width: 24px;
+                height: 24px;
+            }
+        }
 
     </style>
 </head>
@@ -303,526 +284,583 @@ input, textarea {
     </div>
 
     <script>
-        네, 모바일 최적화가 포함된 자바스크립트 전체 코드입니다:
+        const mapWrapper = document.getElementById('map-wrapper');
+        const mapContainer = document.getElementById('map-container');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        let pins = [];
+        let isDragging = false;
+        let startX, startY;
+        let currentTranslateX = 0, currentTranslateY = 0, currentScale = 1;
+        let mode = 'move';
+        let selectedPin = null;
+        let activeInfoBox = null;
 
-```javascript
-const mapWrapper = document.getElementById('map-wrapper');
-const mapContainer = document.getElementById('map-container');
-const searchInput = document.getElementById('search-input');
-const searchResults = document.getElementById('search-results');
-let pins = [];
-let isDragging = false;
-let startX, startY;
-let currentTranslateX = 0, currentTranslateY = 0, currentScale = 1;
-let mode = 'move';
-let selectedPin = null;
-let activeInfoBox = null;
-let touchStartX, touchStartY;
-let lastTouchDistance = 0;
-let isTouching = false;
+        // 핀 데이터
+        const pinsData = [
+  {
+    "x": "588.89",
+    "y": "530.89",
+    "building": "체육관",
+    "floor": "1",
+    "category": "운동",
+    "name": "체육관",
+    "description": "",
+    "address": ""
+  },
+  {
+    "x": "568.89",
+    "y": "483.89",
+    "building": "대학본부",
+    "floor": "1",
+    "category": "도서관",
+    "name": "도서관",
+    "description": "",
+    "address": "https://lib.dima.ac.kr/"
+  },
+  {
+    "x": "526.89",
+    "y": "368.89",
+    "building": "덕성관",
+    "floor": "4",
+    "category": "실습실",
+    "name": "C3 스튜디오",
+    "description": "이곳에 들어가면 못나온다~",
+    "address": ""
+  },
+  {
+    "x": "573.89",
+    "y": "393.89",
+    "building": "기예관",
+    "floor": "1",
+    "category": "실습실",
+    "name": "스튜디오",
+    "description": "HD부터 다양한 스튜디오가 있음",
+    "address": ""
+  },
+  {
+    "x": "254.89",
+    "y": "136.89",
+    "building": "예인관",
+    "floor": "B1",
+    "category": "편의시설",
+    "name": "GS25",
+    "description": "야간 무인운영함",
+    "address": ""
+  },
+  {
+    "x": "239.89",
+    "y": "201.89",
+    "building": "엔터테인먼트관",
+    "floor": "2",
+    "category": "공연장",
+    "name": "대공연장",
+    "description": "나중에 디마아트와 연계예정",
+    "address": ""
+  },
+  {
+    "x": "263.89",
+    "y": "335.89",
+    "building": "디마종합촬영소",
+    "floor": "1",
+    "category": "",
+    "name": "디마종합촬영소",
+    "description": "자세한정보제공 못함",
+    "address": ""
+  },
+  {
+    "x": "654.89",
+    "y": "559.89",
+    "building": "정류장",
+    "floor": "야외",
+    "category": "정류장",
+    "name": "운동장정류장",
+    "description": "",
+    "address": ""
+  },
+  {
+    "x": "884.89",
+    "y": "631.89",
+    "building": "정류장",
+    "floor": "야와",
+    "category": "정류장",
+    "name": "원룸촌 셔틀버스",
+    "description": "",
+    "address": ""
+  }
+]
 
-// 핀 데이터
-const pinsData = [
-    {
-        "x": "588.89",
-        "y": "530.89",
-        "building": "체육관",
-        "floor": "1",
-        "category": "운동",
-        "name": "체육관",
-        "description": "",
-        "address": ""
-    },
-    {
-        "x": "568.89",
-        "y": "483.89",
-        "building": "대학본부",
-        "floor": "1",
-        "category": "도서관",
-        "name": "도서관",
-        "description": "",
-        "address": "https://lib.dima.ac.kr/"
-    },
-    {
-        "x": "526.89",
-        "y": "368.89",
-        "building": "덕성관",
-        "floor": "4",
-        "category": "실습실",
-        "name": "C3 스튜디오",
-        "description": "이곳에 들어가면 못나온다~",
-        "address": ""
-    },
-    {
-        "x": "573.89",
-        "y": "393.89",
-        "building": "기예관",
-        "floor": "1",
-        "category": "실습실",
-        "name": "스튜디오",
-        "description": "HD부터 다양한 스튜디오가 있음",
-        "address": ""
-    },
-    {
-        "x": "254.89",
-        "y": "136.89",
-        "building": "예인관",
-        "floor": "B1",
-        "category": "편의시설",
-        "name": "GS25",
-        "description": "야간 무인운영함",
-        "address": ""
-    },
-    {
-        "x": "239.89",
-        "y": "201.89",
-        "building": "엔터테인먼트관",
-        "floor": "2",
-        "category": "공연장",
-        "name": "대공연장",
-        "description": "나중에 디마아트와 연계예정",
-        "address": ""
-    },
-    {
-        "x": "263.89",
-        "y": "335.89",
-        "building": "디마종합촬영소",
-        "floor": "1",
-        "category": "",
-        "name": "디마종합촬영소",
-        "description": "자세한정보제공 못함",
-        "address": ""
-    },
-    {
-        "x": "654.89",
-        "y": "559.89",
-        "building": "정류장",
-        "floor": "야외",
-        "category": "정류장",
-        "name": "운동장정류장",
-        "description": "",
-        "address": ""
-    },
-    {
-        "x": "884.89",
-        "y": "631.89",
-        "building": "정류장",
-        "floor": "야와",
-        "category": "정류장",
-        "name": "원룸촌 셔틀버스",
-        "description": "",
-        "address": ""
-    }
-];
+        // 필터 옵션 초기화 함수
+        function initializeFilterOptions() {
+            const buildingFilter = document.getElementById('building-filter');
+            const floorFilter = document.getElementById('floor-filter');
+            const categoryFilter = document.getElementById('category-filter');
 
-// 설정 객체
-const mapConfig = {
-    initialScale: 2,
-    initialX: -0,
-    initialY: -80,
-    minScale: 1.6,
-    maxScale: 4,
-    zoomSpeed: 0.01
-};
+            // 고유한 값들 추출
+            const buildings = [...new Set(pinsData.map(pin => pin.building))];
+            const floors = [...new Set(pinsData.map(pin => pin.floor))];
+            const categories = [...new Set(pinsData.map(pin => pin.category))];
 
-// 필터 옵션 초기화 함수
-function initializeFilterOptions() {
-    const buildingFilter = document.getElementById('building-filter');
-    const floorFilter = document.getElementById('floor-filter');
-    const categoryFilter = document.getElementById('category-filter');
+            // 필터 옵션 초기화
+            function populateFilter(filter, options) {
+                filter.innerHTML = '<option value="">전체</option>';
+                options.forEach(option => {
+                    filter.innerHTML += `<option value="${option}">${option}</option>`;
+                });
+            }
 
-    const buildings = [...new Set(pinsData.map(pin => pin.building))];
-    const floors = [...new Set(pinsData.map(pin => pin.floor))];
-    const categories = [...new Set(pinsData.map(pin => pin.category))];
-
-    function populateFilter(filter, options) {
-        filter.innerHTML = '<option value="">전체</option>';
-        options.forEach(option => {
-            if (option) filter.innerHTML += `<option value="${option}">${option}</option>`;
-        });
-    }
-
-    populateFilter(buildingFilter, buildings);
-    populateFilter(floorFilter, floors);
-    populateFilter(categoryFilter, categories);
-}
-
-// 검색 기능
-searchInput.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    if (searchTerm.length < 1) {
-        searchResults.style.display = 'none';
-        return;
-    }
-
-    const filteredPins = pinsData.filter(pin => 
-        pin.name.toLowerCase().includes(searchTerm) ||
-        pin.building.toLowerCase().includes(searchTerm) ||
-        pin.description.toLowerCase().includes(searchTerm)
-    );
-
-    searchResults.innerHTML = '';
-    if (filteredPins.length > 0) {
-        filteredPins.forEach(pin => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'search-result-item';
-            resultItem.innerHTML = `
-                <div><strong>${pin.name}</strong></div>
-                <div>${pin.building} ${pin.floor}</div>
-            `;
-            resultItem.addEventListener('click', () => {
-                const pinObj = pins.find(p => 
-                    p.coordinates.x === pin.x && 
-                    p.coordinates.y === pin.y
-                );
-                if (pinObj) {
-                    moveToPin(pinObj.pin);
-                    showPinInfoBox(pinObj.pin, pin);
-                }
-                searchResults.style.display = 'none';
-                searchInput.value = '';
-            });
-            searchResults.appendChild(resultItem);
-        });
-        searchResults.style.display = 'block';
-    } else {
-        searchResults.style.display = 'none';
-    }
-});
-
-// 지도 초기화 및 업데이트 함수들
-function initializeMap() {
-    currentScale = mapConfig.initialScale;
-    const wrapperWidth = mapWrapper.offsetWidth;
-    const wrapperHeight = mapWrapper.offsetHeight;
-    const mapWidth = 1200 * currentScale;
-    const mapHeight = 900 * currentScale;
-    
-    if (mapConfig.initialX === 0 && mapConfig.initialY === 0) {
-        currentTranslateX = (wrapperWidth - mapWidth) / 2;
-        currentTranslateY = (wrapperHeight - mapHeight) / 2;
-    } else {
-        currentTranslateX = mapConfig.initialX;
-        currentTranslateY = mapConfig.initialY;
-    }
-    
-    updateMapTransform();
-}
-
-function updateMapTransform() {
-    const wrapperWidth = mapWrapper.offsetWidth;
-    const wrapperHeight = mapWrapper.offsetHeight;
-    const mapWidth = 1200 * currentScale;
-    const mapHeight = 900 * currentScale;
-    
-    if (mapWidth > wrapperWidth) {
-        currentTranslateX = Math.min(0, Math.max(currentTranslateX, wrapperWidth - mapWidth));
-    } else {
-        currentTranslateX = (wrapperWidth - mapWidth) / 2;
-    }
-    
-    if (mapHeight > wrapperHeight) {
-        currentTranslateY = Math.min(0, Math.max(currentTranslateY, wrapperHeight - mapHeight));
-    } else {
-        currentTranslateY = (wrapperHeight - mapHeight) / 2;
-    }
-    
-    mapContainer.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
-}
-
-// 터치 이벤트 핸들러
-mapContainer.addEventListener('touchstart', function(e) {
-    isTouching = true;
-    if (e.touches.length === 2) {
-        lastTouchDistance = getTouchDistance(e.touches);
-    } else if (e.touches.length === 1) {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-    }
-}, { passive: false });
-
-mapContainer.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-    
-    if (!isTouching) return;
-    
-    if (e.touches.length === 2) {
-        const currentDistance = getTouchDistance(e.touches);
-        const delta = (currentDistance - lastTouchDistance) / 200;
-        
-        const rect = mapContainer.getBoundingClientRect();
-        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-        
-        const targetScale = Math.min(Math.max(mapConfig.minScale, currentScale * (1 + delta)), mapConfig.maxScale);
-        currentScale = targetScale;
-        
-        updateMapTransform();
-        lastTouchDistance = currentDistance;
-        
-    } else if (e.touches.length === 1) {
-        const deltaX = e.touches[0].clientX - touchStartX;
-        const deltaY = e.touches[0].clientY - touchStartY;
-        
-        currentTranslateX += deltaX;
-        currentTranslateY += deltaY;
-        
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        
-        updateMapTransform();
-    }
-}, { passive: false });
-
-mapContainer.addEventListener('touchend', function() {
-    isTouching = false;
-    lastTouchDistance = 0;
-});
-
-function getTouchDistance(touches) {
-    return Math.hypot(
-        touches[0].clientX - touches[1].clientX,
-        touches[0].clientY - touches[1].clientY
-    );
-}
-
-// 마우스 이벤트 핸들러들
-mapContainer.addEventListener('mousedown', (e) => {
-    if (mode !== 'move') return;
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    mapContainer.style.cursor = 'grabbing';
-});
-
-document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const deltaX = e.clientX - startX;
-    const deltaY = e.clientY - startY;
-    
-    currentTranslateX += deltaX;
-    currentTranslateY += deltaY;
-    
-    startX = e.clientX;
-    startY = e.clientY;
-    
-    updateMapTransform();
-
-    if (activeInfoBox && selectedPin) {
-        const pinRect = selectedPin.getBoundingClientRect();
-        activeInfoBox.style.left = `${pinRect.left}px`;
-        activeInfoBox.style.top = `${pinRect.top - 120}px`;
-    }
-});
-
-document.addEventListener('mouseup', () => {
-    isDragging = false;
-    mapContainer.style.cursor = 'grab';
-});
-
-// 기타 이벤트 리스너들
-mapWrapper.addEventListener('wheel', function(e) {
-    e.preventDefault();
-    const rect = mapContainer.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const delta = e.deltaY > 0 ? -mapConfig.zoomSpeed : mapConfig.zoomSpeed;
-    let targetScale = Math.min(Math.max(mapConfig.minScale, currentScale * (1 + delta)), mapConfig.maxScale);
-
-    const wrapperWidth = mapWrapper.offsetWidth;
-    const wrapperHeight = mapWrapper.offsetHeight;
-    const imageAspectRatio = 1200 / 900;
-    const wrapperAspectRatio = wrapperWidth / wrapperHeight;
-    
-    let minScale = wrapperAspectRatio > imageAspectRatio ? 
-        wrapperHeight / 900 : wrapperWidth / 1200;
-
-    if (targetScale >= minScale) {
-        smoothZoom(targetScale, mouseX, mouseY);
-    }
-});
-
-let zoomAnimation;
-function smoothZoom(targetScale, mouseX, mouseY) {
-    if (zoomAnimation) {
-        cancelAnimationFrame(zoomAnimation);
-    }
-
-    const startScale = currentScale;
-    const scaleDiff = targetScale - startScale;
-    const startTime = performance.now();
-    const duration = 300;
-
-    function animate(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        const easeProgress = progress < 0.5 
-            ? 2 * progress * progress 
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-        
-        const newScale = startScale + (scaleDiff * easeProgress);
-        
-        const beforeX = mouseX / currentScale;
-        const beforeY = mouseY / currentScale;
-        
-        currentScale = newScale;
-        
-        const afterX = mouseX / currentScale;
-        const afterY = mouseY / currentScale;
-        
-        currentTranslateX += (afterX - beforeX) * currentScale;
-        currentTranslateY += (afterY - beforeY) * currentScale;
-        
-        updateMapTransform();
-        
-        if (progress < 1) {
-            zoomAnimation = requestAnimationFrame(animate);
+            populateFilter(buildingFilter, buildings);
+            populateFilter(floorFilter, floors);
+            populateFilter(categoryFilter, categories);
         }
-    }
-    
-    zoomAnimation = requestAnimationFrame(animate);
-}
 
-function moveToPin(pin) {
-    const pinRect = pin.getBoundingClientRect();
-    const wrapperRect = mapWrapper.getBoundingClientRect();
-    
-    const targetX = -(pin.offsetLeft * currentScale - (wrapperRect.width / 2));
-    const targetY = -(pin.offsetTop * currentScale - (wrapperRect.height / 2));
-    
-    mapContainer.style.transition = 'transform 0.5s ease-out';
-    currentTranslateX = targetX;
-    currentTranslateY = targetY;
-    updateMapTransform();
-    
-    setTimeout(() => {
-        mapContainer.style.transition = '';
-    }, 500);
-}
+        // 검색 기능
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            if (searchTerm.length < 1) {
+                searchResults.style.display = 'none';
+                return;
+            }
 
-function createPin(x, y, details = {}) {
-    const pin = document.createElement('div');
-    pin.className = 'pin';
-    pin.style.left = `${x}px`;
-    pin.style.top = `${y}px`;
+            const filteredPins = pinsData.filter(pin => 
+                pin.name.toLowerCase().includes(searchTerm) ||
+                pin.building.toLowerCase().includes(searchTerm) ||
+                pin.description.toLowerCase().includes(searchTerm)
+            );
 
-    pin.addEventListener('click', function(e) {
-        e.stopPropagation();
-        showPinInfoBox(pin, details);
-    });
+            searchResults.innerHTML = '';
+            if (filteredPins.length > 0) {
+                filteredPins.forEach(pin => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.innerHTML = `
+                        <div><strong>${pin.name}</strong></div>
+                        <div>${pin.building} ${pin.floor}</div>
+                    `;
+                    resultItem.addEventListener('click', () => {
+                        // 해당 핀으로 이동 및 정보창 표시
+                        const pinObj = pins.find(p => 
+                            p.coordinates.x === pin.x && 
+                            p.coordinates.y === pin.y
+                        );
+                        if (pinObj) {
+                            moveToPin(pinObj.pin);
+                            showPinInfoBox(pinObj.pin, pin);
+                        }
+                        searchResults.style.display = 'none';
+                        searchInput.value = '';
+                    });
+                    searchResults.appendChild(resultItem);
+                });
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
 
-    mapContainer.appendChild(pin);
-    pins.push({
-        pin,
-        coordinates: { x, y },
-        ...details
-    });
-}
+        // 특정 핀으로 이동하는 함수
+        function moveToPin(pin) {
+            const pinRect = pin.getBoundingClientRect();
+            const wrapperRect = mapWrapper.getBoundingClientRect();
+            
+            // 핀이 화면 중앙에 오도록 이동
+            const targetX = -(pin.offsetLeft * currentScale - (wrapperRect.width / 2));
+            const targetY = -(pin.offsetTop * currentScale - (wrapperRect.height / 2));
+            
+            // 부드러운 애니메이션으로 이동
+            mapContainer.style.transition = 'transform 0.5s ease-out';
+            currentTranslateX = targetX;
+            currentTranslateY = targetY;
+            updateMapTransform();
+            
+            // 애니메이션 종료 후 transition 제거
+            setTimeout(() => {
+                mapContainer.style.transition = '';
+            }, 500);
+        }
 
-function showPinInfoBox(pin, pinData) {
-    if (activeInfoBox) {
-        activeInfoBox.style.display = 'none';
-    }
+        // 나머지 기존 함수들 유지
+        function initializeMap() {
+            currentScale = 1.2;
+            const wrapperWidth = mapWrapper.offsetWidth;
+            const wrapperHeight = mapWrapper.offsetHeight;
+            const mapWidth = 1200 * currentScale;
+            const mapHeight = 900 * currentScale;
+            
+            currentTranslateX = (wrapperWidth - mapWidth) / 2;
+            currentTranslateY = (wrapperHeight - mapHeight) / 2;
+            
+            updateMapTransform();
+        }
 
-    const pinRect = pin.getBoundingClientRect();
-    const infoBox = document.createElement('div');
-    infoBox.className = 'pin-info-box';
-    
-    infoBox.style.left = `${pinRect.left}px`;
-    infoBox.style.top = `${pinRect.top - 120}px`;
+        function updateMapTransform() {
+            const wrapperWidth = mapWrapper.offsetWidth;
+            const wrapperHeight = mapWrapper.offsetHeight;
+            const mapWidth = 1200 * currentScale;
+            const mapHeight = 900 * currentScale;
+            
+            if (mapWidth > wrapperWidth) {
+                currentTranslateX = Math.min(0, Math.max(currentTranslateX, wrapperWidth - mapWidth));
+            } else {
+                currentTranslateX = (wrapperWidth - mapWidth) / 2;
+            }
+            
+            if (mapHeight > wrapperHeight) {
+                currentTranslateY = Math.min(0, Math.max(currentTranslateY, wrapperHeight - mapHeight));
+            } else {
+                currentTranslateY = (wrapperHeight - mapHeight) / 2;
+            }
+            
+            mapContainer.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
+        }
 
-    const closeBtn = document.createElement('span');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.onclick = function(e) {
-        e.stopPropagation();
-        infoBox.style.display = 'none';
-        activeInfoBox = null;
-    };
-    infoBox.appendChild(closeBtn);
+        function showPinInfoBox(pin, pinData) {
+            if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
 
-    infoBox.innerHTML += `
-        <strong>이름:</strong> ${pinData.name || '미정'}<br>
-        <strong>건물:</strong> ${pinData.building || '미정'}<br>
-        <strong>층:</strong> ${pinData.floor || '미정'}<br>
-        <strong>카테고리:</strong> ${pinData.category || '미정'}<br>
-        <strong>설명:</strong> ${pinData.description || '미정'}<br>
-        <strong>주소:</strong> 
-        ${pinData.address ? `<a href="${pinData.address}" target="_blank">${pinData.address}</a>` : '미정'}
-    `;
-    
-    document.body.appendChild(infoBox);
-    infoBox.style.display = 'block';
-    activeInfoBox = infoBox;
-    selectedPin = pin;
+            const pinRect = pin.getBoundingClientRect();
+            const infoBox = document.createElement('div');
+            infoBox.className = 'pin-info-box';
+            
+            infoBox.style.left = `${pinRect.left}px`;
+            infoBox.style.top = `${pinRect.top - 120}px`;
 
-    const infoBoxRect = infoBox.getBoundingClientRect();
-    if (infoBoxRect.top < 0) {
-        infoBox.style.top = '10px';
-    }
-    if (infoBoxRect.left < 0) {
-        infoBox.style.left = '10px';
-    }
-    if (infoBoxRect.right > window.innerWidth) {
-        infoBox.style.left = `${window.innerWidth - infoBoxRect.width - 10}px`;
-    }
-}
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'close-btn';
+            closeBtn.innerHTML = '×';
+            closeBtn.onclick = function(e) {
+                e.stopPropagation();
+                infoBox.style.display = 'none';
+                activeInfoBox = null;
+            };
+            infoBox.appendChild(closeBtn);
 
-function filterPins() {
-    const buildingFilter = document.getElementById('building-filter').value;
-    const floorFilter = document.getElementById('floor-filter').value;
-    const categoryFilter = document.getElementById('category-filter').value;
+            infoBox.innerHTML += `
+                <strong>이름:</strong> ${pinData.name || '미정'}<br>
+                <strong>건물:</strong> ${pinData.building || '미정'}<br>
+                <strong>층:</strong> ${pinData.floor || '미정'}<br>
+                <strong>카테고리:</strong> ${pinData.category || '미정'}<br>
+                <strong>설명:</strong> ${pinData.description || '미정'}<br>
+                <strong>주소:</strong> 
+                ${pinData.address ? `<a href="${pinData.address}" target="_blank">${pinData.address}</a>` : '미정'}
+            `;
+            
+            document.body.appendChild(infoBox);
+            infoBox.style.display = 'block';
+            activeInfoBox = infoBox;
+            selectedPin = pin;
 
-    pins.forEach(pinObj => {
-        const matchesBuilding = buildingFilter ? pinObj.building === buildingFilter : true;
-        const matchesFloor = floorFilter ? pinObj.floor === floorFilter : true;
-        const matchesCategory = categoryFilter ? pinObj.category === categoryFilter : true;
+            // 정보창이 화면 밖으로 나가지 않도록 조정
+            const infoBoxRect = infoBox.getBoundingClientRect();
+            if (infoBoxRect.top < 0) {
+                infoBox.style.top = '10px';
+            }
+            if (infoBoxRect.left < 0) {
+                infoBox.style.left = '10px';
+            }
+            if (infoBoxRect.right > window.innerWidth) {
+                infoBox.style.left = `${window.innerWidth - infoBoxRect.width - 10}px`;
+            }
+        }
 
-        pinObj.pin.style.display = 
-            (matchesBuilding && matchesFloor && matchesCategory) ? 'block' : 'none';
-    });
-}
+        // 핀 생성 함수
+        function createPin(x, y, details = {}) {
+            const pin = document.createElement('div');
+            pin.className = 'pin';
+            pin.style.left = `${x}px`;
+            pin.style.top = `${y}px`;
 
-function setupFilters() {
-    const filters = ['building-filter', 'floor-filter', 'category-filter'];
-    filters.forEach(filterId => {
-        document.getElementById(filterId).addEventListener('change', filterPins);
-    });
-}
+            pin.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showPinInfoBox(pin, details);
+            });
 
-mapWrapper.addEventListener('click', function() {
-    if (activeInfoBox) {
-        activeInfoBox.style.display = 'none';
-        activeInfoBox = null;
-    }
-    searchResults.style.display = 'none';
-    searchInput.value = '';
-});
+            mapContainer.appendChild(pin);
+            pins.push({
+                pin,
+                coordinates: { x, y },
+                ...details
+            });
+        }
 
-window.addEventListener('resize', function() {
-    updateMapTransform();
-    if (activeInfoBox && selectedPin) {
-        const pinRect = selectedPin.getBoundingClientRect();
-        activeInfoBox.style.left = `${pinRect.left}px`;
-        activeInfoBox.style.top = `${pinRect.top - 120}px`;
-    }
-});
+        // 필터링 함수
+        function filterPins() {
+            const buildingFilter = document.getElementById('building-filter').value;
+            const floorFilter = document.getElementById('floor-filter').value;
+            const categoryFilter = document.getElementById('category-filter').value;
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeMap();
-    initializeFilterOptions();
-    setupFilters();
-    pinsData.forEach(pinData => createPin(pinData.x, pinData.y, pinData));
-    
-    const applyButton = document.getElementById('apply-filters');
-    if (applyButton) {
-        applyButton.remove();
-    }
-});
+            pins.forEach(pinObj => {
+                const matchesBuilding = buildingFilter ? pinObj.building === buildingFilter : true;
+                const matchesFloor = floorFilter ? pinObj.floor === floorFilter : true;
+                const matchesCategory = categoryFilter ? pinObj.category === categoryFilter : true;
 
+                pinObj.pin.style.display = 
+                    (matchesBuilding && matchesFloor && matchesCategory) ? 'block' : 'none';
+            });
+        }
+
+        // 이벤트 리스너들
+        mapContainer.addEventListener('mousedown', (e) => {
+            if (mode !== 'move') return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            mapContainer.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            currentTranslateX += deltaX;
+            currentTranslateY += deltaY;
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            updateMapTransform();
+
+            // 핀 정보창 위치 업데이트
+            if (activeInfoBox && selectedPin) {
+                const pinRect = selectedPin.getBoundingClientRect();
+                activeInfoBox.style.left = `${pinRect.left}px`;
+                activeInfoBox.style.top = `${pinRect.top - 120}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            mapContainer.style.cursor = 'grab';
+        });
+
+        mapWrapper.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const rect = mapContainer.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const beforeX = mouseX / currentScale;
+            const beforeY = mouseY / currentScale;
+
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            currentScale = Math.min(Math.max(0.5, currentScale * delta), 3);
+
+            const afterX = mouseX / currentScale;
+            const afterY = mouseY / currentScale;
+
+            currentTranslateX += (afterX - beforeX) * currentScale;
+            currentTranslateY += (afterY - beforeY) * currentScale;
+
+            updateMapTransform();
+            
+            // 핀 정보창 위치 업데이트
+            if (activeInfoBox && selectedPin) {
+                const pinRect = selectedPin.getBoundingClientRect();
+                activeInfoBox.style.left = `${pinRect.left}px`;
+                activeInfoBox.style.top = `${pinRect.top - 120}px`;
+            }
+        });
+
+        mapWrapper.addEventListener('click', function() {
+            if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+                activeInfoBox = null;
+            }
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+        });
+
+        window.addEventListener('resize', function() {
+            updateMapTransform();
+            if (activeInfoBox && selectedPin) {
+                const pinRect = selectedPin.getBoundingClientRect();
+                activeInfoBox.style.left = `${pinRect.left}px`;
+                activeInfoBox.style.top = `${pinRect.top - 120}px`;
+            }
+        });
+
+        // 앱 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            initializeFilterOptions();
+            pinsData.forEach(pinData => createPin(pinData.x, pinData.y, pinData));
+            document.getElementById('apply-filters').addEventListener('click', filterPins);
+        });
+
+        // 초기 설정 객체 추가
+            const mapConfig = {
+                initialScale: 2,    // 초기 확대/축소 비율
+                initialX: -0,          // 초기 X 위치 (픽셀)
+                initialY: -80,          // 초기 Y 위치 (픽셀)
+                minScale: 1.6,        // 최소 축소 비율
+                maxScale: 4,          // 최대 확대 비율
+                zoomSpeed: 0.01        // 확대/축소 속도 (낮을수록 부드러움)
+            };
+
+            // 지도 초기화 함수 수정
+            function initializeMap() {
+                currentScale = mapConfig.initialScale;
+                
+                const wrapperWidth = mapWrapper.offsetWidth;
+                const wrapperHeight = mapWrapper.offsetHeight;
+                const mapWidth = 1200 * currentScale;
+                const mapHeight = 900 * currentScale;
+                
+                // 초기 위치 설정
+                if (mapConfig.initialX === 0 && mapConfig.initialY === 0) {
+                    // 중앙 정렬
+                    currentTranslateX = (wrapperWidth - mapWidth) / 2;
+                    currentTranslateY = (wrapperHeight - mapHeight) / 2;
+                } else {
+                    // 지정된 위치로 설정
+                    currentTranslateX = mapConfig.initialX;
+                    currentTranslateY = mapConfig.initialY;
+                }
+                
+                updateMapTransform();
+            }
+
+            // 부드러운 확대/축소를 위한 함수 수정
+            let zoomAnimation;
+            function smoothZoom(targetScale, mouseX, mouseY) {
+                if (zoomAnimation) {
+                    cancelAnimationFrame(zoomAnimation);
+                }
+
+                const startScale = currentScale;
+                const scaleDiff = targetScale - startScale;
+                const startTime = performance.now();
+                const duration = 300; // 애니메이션 지속 시간 (ms)
+
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // easeInOutQuad 이징 함수 적용
+                    const easeProgress = progress < 0.5 
+                        ? 2 * progress * progress 
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    
+                    const newScale = startScale + (scaleDiff * easeProgress);
+                    
+                    const beforeX = mouseX / currentScale;
+                    const beforeY = mouseY / currentScale;
+                    
+                    currentScale = newScale;
+                    
+                    const afterX = mouseX / currentScale;
+                    const afterY = mouseY / currentScale;
+                    
+                    currentTranslateX += (afterX - beforeX) * currentScale;
+                    currentTranslateY += (afterY - beforeY) * currentScale;
+                    
+                    updateMapTransform();
+                    
+                    if (progress < 1) {
+                        zoomAnimation = requestAnimationFrame(animate);
+                    }
+                }
+                
+                zoomAnimation = requestAnimationFrame(animate);
+            }
+
+            // wheel 이벤트 리스너 수정
+            mapWrapper.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const rect = mapContainer.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const delta = e.deltaY > 0 ? -mapConfig.zoomSpeed : mapConfig.zoomSpeed;
+                const targetScale = Math.min(Math.max(mapConfig.minScale, currentScale * (1 + delta)), mapConfig.maxScale);
+                
+                // 이미지가 wrapper보다 작아지지 않도록 확인
+                const wrapperWidth = mapWrapper.offsetWidth;
+                const wrapperHeight = mapWrapper.offsetHeight;
+                const imageAspectRatio = 1200 / 900;
+                const wrapperAspectRatio = wrapperWidth / wrapperHeight;
+                
+                let minScale;
+                if (wrapperAspectRatio > imageAspectRatio) {
+                    minScale = wrapperHeight / 900;
+                } else {
+                    minScale = wrapperWidth / 1200;
+                }
+                
+                if (targetScale >= minScale) {
+                    smoothZoom(targetScale, mouseX, mouseY);
+                }
+            });
+
+            // 필터 이벤트 리스너 수정 (자동 적용)
+            function setupFilters() {
+                const filters = ['building-filter', 'floor-filter', 'category-filter'];
+                filters.forEach(filterId => {
+                    document.getElementById(filterId).addEventListener('change', filterPins);
+                });
+            }
+
+            // 터치 이벤트 지원 추가
+            let lastTouchDistance = 0;
+
+            mapContainer.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 2) {
+                    lastTouchDistance = getTouchDistance(e.touches);
+                }
+            }, { passive: false });
+
+            mapContainer.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                
+                if (e.touches.length === 2) {
+                    const currentDistance = getTouchDistance(e.touches);
+                    const delta = (currentDistance - lastTouchDistance) / 100;
+                    
+                    const rect = mapContainer.getBoundingClientRect();
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+                    
+                    const targetScale = Math.min(Math.max(mapConfig.minScale, currentScale * (1 + delta)), mapConfig.maxScale);
+                    smoothZoom(targetScale, centerX, centerY);
+                    
+                    lastTouchDistance = currentDistance;
+                } else if (e.touches.length === 1) {
+                    const deltaX = e.touches[0].clientX - startX;
+                    const deltaY = e.touches[0].clientY - startY;
+                    
+                    currentTranslateX += deltaX;
+                    currentTranslateY += deltaY;
+                    
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    
+                    updateMapTransform();
+                }
+            }, { passive: false });
+
+            function getTouchDistance(touches) {
+                return Math.hypot(
+                    touches[0].clientX - touches[1].clientX,
+                    touches[0].clientY - touches[1].clientY
+                );
+            }
+
+            // 초기화 시 필터 설정 추가
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeMap();
+                initializeFilterOptions();
+                setupFilters();
+                pinsData.forEach(pinData => createPin(pinData.x, pinData.y, pinData));
+                
+                // 필터 적용 버튼 제거
+                const applyButton = document.getElementById('apply-filters');
+                if (applyButton) {
+                    applyButton.remove();
+                }
+            });
     </script>
 </body>
 </html>
