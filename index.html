@@ -350,7 +350,8 @@ let lastTouchDistance = 0;
 let zoomAnimation;
 let initialTouchX, initialTouchY;
 let isTouchMoving = false;
-let lastTouchTime = 0;
+let initialDistance = 0;
+let isPinching = false;
 const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
 
 // 맵 설정
@@ -716,12 +717,13 @@ function moveToPin(pin) {
     }, 500);
 }
 
-// 터치 확대/축소를 부드럽게 하는 함수
+// 부드러운 줌 함수
+// 부드러운 줌 함수 전면 수정
 function smoothZoom(targetScale, mouseX, mouseY) {
     const startScale = currentScale;
     const scaleDiff = targetScale - startScale;
     const duration = 300;
-
+    
     if (zoomAnimation) {
         cancelAnimationFrame(zoomAnimation);
     }
@@ -730,20 +732,20 @@ function smoothZoom(targetScale, mouseX, mouseY) {
     const viewportX = mouseX;
     const viewportY = mouseY;
 
-       // 현재 맵 상의 마우스 위치 계산
-       const mapX = (viewportX - currentTranslateX) / currentScale;
+    // 현재 맵 상의 마우스 위치 계산
+    const mapX = (viewportX - currentTranslateX) / currentScale;
     const mapY = (viewportY - currentTranslateY) / currentScale;
 
     const startTime = performance.now();
-
+    
     function animate(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-
+        
         // easeOutQuad 이징 함수 사용
         const easeProgress = 1 - (1 - progress) * (1 - progress);
         const newScale = startScale + (scaleDiff * easeProgress);
-
+        
         // 새로운 translate 값 계산
         // 마우스 위치는 고정된 채로 확대/축소되어야 함
         const newTranslateX = viewportX - (mapX * newScale);
@@ -762,59 +764,16 @@ function smoothZoom(targetScale, mouseX, mouseY) {
         currentScale = newScale;
         currentTranslateX = Math.max(minX, Math.min(0, newTranslateX));
         currentTranslateY = Math.max(minY, Math.min(0, newTranslateY));
-
+        
         updateMapTransform();
-
+        
         if (progress < 1) {
             zoomAnimation = requestAnimationFrame(animate);
         }
     }
-
+    
     zoomAnimation = requestAnimationFrame(animate);
 }
-
-// 터치 이벤트 헬퍼 함수
-function getTouchDistance(touches) {
-    return Math.hypot(
-        touches[0].clientX - touches[1].clientX,
-        touches[0].clientY - touches[1].clientY
-    );
-}
-
-// 터치 시작 이벤트 핸들러
-mapContainer.addEventListener('touchstart', function(e) {
-    const currentTime = new Date().getTime();
-    const touchTimeDiff = currentTime - lastTouchTime;
-    
-    if (e.touches.length === 2) {
-        // 핀치 줌 시작
-        e.preventDefault();
-        lastTouchDistance = getTouchDistance(e.touches);
-        isTouchMoving = false;
-    } else if (e.touches.length === 1) {
-        // 단일 터치 시작
-        initialTouchX = e.touches[0].clientX;
-        initialTouchY = e.touches[0].clientY;
-        startX = initialTouchX;
-        startY = initialTouchY;
-        isTouchMoving = false;
-
-        // 더블탭 줌 처리
-        if (touchTimeDiff < TOUCH_DELAY) {
-            e.preventDefault();
-            const rect = mapContainer.getBoundingClientRect();
-            const touchX = e.touches[0].clientX - rect.left;
-            const touchY = e.touches[0].clientY - rect.top;
-            
-            // 현재 스케일이 최대값이면 최소값으로, 아니면 최대값으로 줌
-            const targetScale = currentScale === mapConfig.maxScale ? 
-                mapConfig.minScale : mapConfig.maxScale;
-            smoothZoom(targetScale, touchX, touchY);
-        }
-    }
-    
-    lastTouchTime = currentTime;
-}, { passive: false });
 
 // 마우스 다운 이벤트 핸들러 추가
 mapContainer.addEventListener('mousedown', (e) => {
@@ -882,72 +841,6 @@ mapWrapper.addEventListener('wheel', function(e) {
         smoothZoom(targetScale, mouseX, mouseY);
     }
 });
-
-// 핀치 줌 및 드래그 이동 처리
-mapContainer.addEventListener('touchstart', function(e) {
-    if (e.touches.length === 2) {
-        e.preventDefault();
-        lastTouchDistance = getTouchDistance(e.touches);
-    } else if (e.touches.length === 1) {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-    }
-}, { passive: false });
-
-mapContainer.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-
-    if (e.touches.length === 2) {
-        // 핀치 줌 처리
-        const currentDistance = getTouchDistance(e.touches);
-        const delta = (currentDistance - lastTouchDistance) / 200; // 감도 조절
-
-        const rect = mapContainer.getBoundingClientRect();
-        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-
-        const targetScale = Math.min(
-            Math.max(mapConfig.minScale, currentScale * (1 + delta)),
-            mapConfig.maxScale
-        );
-
-        if (Math.abs(currentScale - targetScale) > 0.01) {
-            smoothZoom(targetScale, centerX, centerY);
-            lastTouchDistance = currentDistance;
-        }
-    } else if (e.touches.length === 1) {
-        // 드래그 처리
-        const touchX = e.touches[0].clientX;
-        const touchY = e.touches[0].clientY;
-
-        // 최소 이동 거리 체크로 우발적인 이동 방지
-        if (!isTouchMoving &&
-            (Math.abs(touchX - initialTouchX) > 5 || Math.abs(touchY - initialTouchY) > 5)) {
-            isTouchMoving = true;
-        }
-
-        if (isTouchMoving) {
-            const deltaX = touchX - startX;
-            const deltaY = touchY - startY;
-
-            currentTranslateX += deltaX;
-            currentTranslateY += deltaY;
-
-            startX = touchX;
-            startY = touchY;
-
-            updateMapTransform();
-        }
-    }
-}, { passive: false });
-
-// 터치 종료 이벤트 핸들러
-mapContainer.addEventListener('touchend', function() {
-    startX = undefined;
-    startY = undefined;
-    lastTouchDistance = 0;
-    isTouchMoving = false;
-}, { passive: false });
 
 // 터치 취소 이벤트 핸들러
 mapContainer.addEventListener('touchcancel', function() {
@@ -1029,6 +922,67 @@ document.addEventListener('DOMContentLoaded', function() {
         applyButton.remove();
     }
 });
+
+// 터치 시작 이벤트 핸들러
+mapContainer.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        // 한 손가락 터치로 드래그 시작
+        isTouchMoving = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+        // 두 손가락으로 확대/축소 시작
+        isPinching = true;
+        initialDistance = getDistance(e.touches[0], e.touches[1]);
+    }
+});
+
+// 터치 이동 이벤트 핸들러
+mapContainer.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (isTouchMoving && e.touches.length === 1) {
+        // 한 손가락으로 이동
+        const deltaX = e.touches[0].clientX - startX;
+        const deltaY = e.touches[0].clientY - startY;
+
+        currentTranslateX += deltaX;
+        currentTranslateY += deltaY;
+
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+
+        updateMapTransform();
+    } else if (isPinching && e.touches.length === 2) {
+        // 두 손가락으로 확대/축소
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const scaleFactor = currentDistance / initialDistance;
+        const targetScale = Math.min(
+            Math.max(mapConfig.minScale, currentScale * scaleFactor),
+            mapConfig.maxScale
+        );
+
+        if (Math.abs(targetScale - currentScale) > 0.01) {
+            smoothZoom(targetScale, e.touches[0].clientX, e.touches[0].clientY);
+            initialDistance = currentDistance; // 확대/축소에 맞춰 초기 거리 재설정
+        }
+    }
+});
+
+// 터치 끝 이벤트 핸들러
+mapContainer.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+        // 터치가 끝났을 때
+        isTouchMoving = false;
+        isPinching = false;
+    }
+});
+
+// 두 손가락 간의 거리 계산
+function getDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+}
 
 // 토글 버튼 클릭 시 control-panel 보이기/숨기기
 document.getElementById('toggle-button').addEventListener('click', function() {
