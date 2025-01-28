@@ -67,20 +67,28 @@
             gap: 16px;  /* 항목 간의 간격 */
         }
 
-        /* 검색창 */
+            /* 검색창 */
         .search-container {
-            flex: 1;
-            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 40px; /* 타이틀과 검색창 간 간격 */
+            margin-bottom: 00px; /* 컨테이너 간 간격 */
+        }
+
+        .search-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
         }
 
         .search-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            font-size: 16px;
-            box-sizing: border-box;
+            flex: 1; /* 입력 창이 남은 공간을 차지하도록 설정 */
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .search-results {
+            margin-top: 5px;
         }
 
         /* 필터링 그룹을 1줄에 배치 */
@@ -151,6 +159,7 @@
             border-radius: 6px;
             cursor: pointer;
             text-align: center;
+            text-decoration: none;
         }
 
         .nav-button:hover {
@@ -235,7 +244,7 @@
             flex-direction: column;
             align-items: stretch;
             width: 70%;
-            left: -00%;
+            left: 13%;
             top: 90px;
         }
         .search-input {
@@ -261,6 +270,8 @@
             transition: transform 0.3s ease-in-out;
             transform: translateY(0); /* 부드럽게 위로 나타나도록 설정 */
         }
+
+
 
         /* 추가된 필터, 카테고리 등의 스타일 조정 */
         .filter-group {
@@ -295,6 +306,7 @@
     <div class="control-panel">
         <!-- 검색 창 -->
         <div class="search-container">
+            <span class="search-title">DIMA MAP</span> <!-- 타이틀 추가 -->
             <input type="text" class="search-input" placeholder="검색어를 입력하세요..." id="search-input">
             <div class="search-results" id="search-results"></div>
         </div>
@@ -327,11 +339,11 @@
 
     <!-- 네비게이션 버튼 -->
     <div class="nav-buttons">
-        <button class="nav-button">홈</button>
-        <button class="nav-button">길찾기</button>
-        <button class="nav-button">즐겨찾기</button>
-        <button class="nav-button">공지사항</button>
-        <button class="nav-button">설정</button>
+        <a href="https://mytwice.github.io/DIMAMAP/" class="nav-button">홈</a>
+        <a href="#" class="nav-button">확대</a>
+        <a href="#" class="nav-button">축소</a>
+        <a href="https://mytwice.github.io/I-DIMA/" class="nav-button">공지사항</a>
+        <a href="https://mytwice.github.io/I-DIMA/" class="nav-button">I-DIMA</a>
     </div>
 
 <script>
@@ -363,7 +375,7 @@ const mapConfig = {
     maxScale: 9,
     zoomSpeed: 1,
     mobile: {
-        initialScale: 0.94,
+        initialScale: 0.9,
         initialX: -210,
         initialY: -10
     }
@@ -1031,14 +1043,14 @@ mapWrapper.addEventListener('wheel', function(e) {
 
 
 // 클릭 이벤트로 정보창과 검색결과 닫기
-mapWrapper.addEventListener('click', function() {
-    if (activeInfoBox) {
-        activeInfoBox.style.display = 'none';
-        activeInfoBox = null;
-    }
-    searchResults.style.display = 'none';
-    searchInput.value = '';
-});
+// mapWrapper.addEventListener('click', function() {
+//     if (activeInfoBox) {
+//         activeInfoBox.style.display = 'none';
+//         activeInfoBox = null;
+//     }
+//     searchResults.style.display = 'none';
+//     searchInput.value = '';
+// });
 
 // 윈도우 리사이즈 이벤트
 window.addEventListener('resize', function() {
