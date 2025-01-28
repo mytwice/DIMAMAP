@@ -12,6 +12,7 @@
             height: 100%;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f9f9f9;
+            overflow: hidden; /* 페이지에서 스크롤바를 숨깁니다 */
         }
 
         #map-wrapper {
@@ -69,8 +70,9 @@
 
             /* 검색창 */
         .search-container {
+            left: 50%;
             display: flex;
-            align-items: center;
+
             gap: 40px; /* 타이틀과 검색창 간 간격 */
             margin-bottom: 00px; /* 컨테이너 간 간격 */
         }
@@ -98,12 +100,13 @@
             flex-wrap: nowrap;  /* 필터 그룹은 한 줄에 배치 */
         }
 
-        /* 카테고리 필터는 2줄로 배치 */
         #category-filter {
             display: flex;
-            flex-wrap: wrap;  /* 라벨들을 2줄로 배치 */
+            flex-wrap: nowrap;  /* 한 줄로 배치 */
             gap: 16px;
             width: 100%;  /* 전체 너비 사용 */
+            overflow-x: auto;  /* 가로 스크롤을 추가 */
+            padding-bottom: 10px;  /* 스크롤바가 보이도록 아래 여백 추가 */
         }
 
         #category-filter label {
@@ -138,32 +141,6 @@
 
         .filter-button:hover {
             background: #1976D2;
-        }
-
-        /* 네비게이션 버튼 */
-        .nav-buttons {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .nav-button {
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .nav-button:hover {
-            background-color: #45a049;
         }
 
         /* 핀 및 정보 박스 */
@@ -232,61 +209,222 @@
             color: #333;
         }
 
-    /* 모바일에서 토글 버튼 */
-    .toggle-button {
+        /* 카테고리 스크롤 */
+        .category-scroll {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 10px 0;
+            gap: 10px;
+        }
+
+        .category-item {
+            flex: 0 0 auto;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+    .mobile-nav {
         display: none;
     }
 
-    /* 모바일에서 control-panel 숨기기 */
-    @media (max-width: 768px) {
-        .control-panel {
-            display: none; /* 모바일에서는 숨깁니다 */
-            flex-direction: column;
-            align-items: stretch;
-            width: 70%;
-            left: 13%;
-            top: 90px;
-        }
-        .search-input {
-            width: 50%;
-        }
-        .toggle-button {
-            display: block;
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
-            font-size: 24px;
-            border: none;
-            cursor: pointer;
-            z-index: 1000; /* 버튼이 항상 위에 표시되도록 */
-        }
-
-        /* control-panel을 보이게 할 때 */
-        .control-panel.show {
-            display: flex; /* 토글 시 보이게 설정 */
-            transition: transform 0.3s ease-in-out;
-            transform: translateY(0); /* 부드럽게 위로 나타나도록 설정 */
-        }
-
-
-
-        /* 추가된 필터, 카테고리 등의 스타일 조정 */
-        .filter-group {
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        #category-filter {
-            flex-direction: column;
-        }
-
-        #category-filter label {
-            width: 100%;
-        }
+    /* 네비게이션 바 우상단에 이미지와 텍스트 */
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        bottom: 30px;
+        right: 50px;
     }
+
+    /* 로고 이미지 스타일 */
+    .logo-img {
+        width: 140px; /* 이미지 크기 설정 */
+        height: auto;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+    }
+
+    /* 로고 텍스트 스타일 */
+    .logo-text {
+        font-size: 13px; /* 텍스트 크기 */
+        font-weight: bold;
+        margin-right: 20px; /* 이미지와 텍스트 사이 여백 */
+        color: #f9f9f9; /* 텍스트 색상 */
+    }
+
+        
+    @media (max-width: 768px) {
+
+            /* 네비게이션 바 우상단에 이미지와 텍스트 */
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        bottom: 90px;
+        right: 10px;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+    }
+
+    /* 로고 이미지 스타일 */
+    .logo-img {
+        width: 130px; /* 이미지 크기 설정 */
+        height: auto;
+    }
+
+    /* 로고 텍스트 스타일 */
+    .logo-text {
+        font-size: 12px; /* 텍스트 크기 */
+        font-weight: bold;
+        margin-right: 20px; /* 이미지와 텍스트 사이 여백 */
+        color: #f9f9f9; /* 텍스트 색상 */
+    }
+    .control-panel {
+        position: fixed;
+        top: 6px;
+        left: 50%;
+        width: 100%;
+        background: white;
+        padding: 10px 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        background: transparent;
+        box-shadow: none;
+        padding: 30px;
+    }
+
+    /* 모바일 네비게이션 */
+.mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 18px 0;
+    justify-content: space-around;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* 네비게이션 항목 사이에 구분선 추가 */
+.mobile-nav a {
+    padding: 0px;
+    text-align: center;
+    flex-grow: 1;
+    border-right: 1px solid #ddd; /* 항목 사이에 구분선 */
+}
+
+    /* 마지막 항목의 구분선 없애기 */
+    .mobile-nav a:last-child {
+        border-right: none;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: #666;
+        font-size: 15px;
+        gap: 4px;
+    }
+
+    
+    .filter-group {
+        display: none; /* 필터 그룹 숨김 */
+    }
+    
+    .bottom-nav {
+        display: block; /* 모바일에서만 표시 */
+    }
+    
+    #map-wrapper {
+        padding-bottom: 10px; /* 하단 네비게이션 높이만큼 여백 */
+    }
+    
+    /* 카테고리 스크롤 활성화 */
+    #category-filter {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 0;
+        gap: 10px;
+        width: 86%;
+        margin: 0 auto;
+    }
+    
+    #category-filter label {
+        flex: 0 0 auto;
+        padding: 8px 16px;
+        background: #f0f0f0;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    /* 검색창을 중앙에 배치 */
+    .search-container {
+        background: white;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        width: 85%;
+        max-width: 800px; /* 최대 너비 설정 */
+        margin: 0 auto; /* 자동으로 좌우 여백 */
+    }
+}
+
+    .search-input {
+        border: none;
+        padding: 8px;
+        width: 100%;
+        font-size: 16px;
+    }
+
+    /* 카테고리 스타일 */
+    #category-filter {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 10px 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #category-filter label {
+        background: #e155b5;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+
+    /* 하단 건물 정보 */
+    .bottom-info {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #4267B2;
+        color: white;
+        padding: 20px;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .bottom-info div {
+        margin: 5px 0;
+        font-size: 16px;
+    }
+
 
     @media (max-width: 480px) {
         /* 작은 화면에서 라벨 크기 및 입력 크기 조정 */
@@ -324,12 +462,8 @@
         <div id="category-filter">
             <label><input type="checkbox" name="category" value=""> 전체</label>
             <!-- 동적으로 카테고리 라디오 버튼 추가 -->
-        </div>       
+        </div>
     </div>
-
-    <!-- 모바일 토글 버튼 -->
-    <button class="toggle-button" id="toggle-button">☰</button>
-</body>
 
     <div id="map-wrapper">
         <div id="map-container">
@@ -337,14 +471,30 @@
         </div>
     </div>
 
-    <!-- 네비게이션 버튼 -->
-    <div class="nav-buttons">
-        <a href="https://mytwice.github.io/DIMAMAP/" class="nav-button">홈</a>
-        <a href="#" class="nav-button">확대</a>
-        <a href="#" class="nav-button">축소</a>
-        <a href="https://mytwice.github.io/I-DIMA/" class="nav-button">공지사항</a>
-        <a href="https://mytwice.github.io/I-DIMA/" class="nav-button">I-DIMA</a>
+    <div class="nav-logo">
+        <span class="logo-text">위성 제공 ㅣ 국토지리정보원</span>
+        <img src="sub0705_01_Open_Mark_01.jpg" alt="국토지리정보원" class="logo-img">
     </div>
+
+    <nav class="mobile-nav">
+        <a href="https://mytwice.github.io/DIMAMAP/" class="nav-item">
+            <span>🏠</span>
+            <span>홈</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span>🔍</span>
+            <span>건물</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span>📍</span>
+            <span>안전지도</span>
+        </a>
+        <a href="https://mytwice.github.io/I-DIMA/" class="nav-item">
+            <span>ℹ️</span>
+            <span>제보/정보</span>
+        </a>
+    </nav>
+</body>
 
 <script>
 // 변수 선언
@@ -368,16 +518,16 @@ const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
 
 // 맵 설정
 const mapConfig = {
-    initialScale: 1.8,
+    initialScale: 1.6,
     initialX: -0,
-    initialY: -80,
-    minScale: 1.6,
+    initialY: 50,
+    minScale: 0.99,
     maxScale: 9,
     zoomSpeed: 1,
     mobile: {
-        initialScale: 0.9,
-        initialX: -210,
-        initialY: -10
+        initialScale: 1.2,
+        initialX: -460,
+        initialY: -80
     }
 };
 
@@ -561,12 +711,25 @@ function updateMapTransform() {
     const mapWidth = 1200 * currentScale;
     const mapHeight = 900 * currentScale;
 
-    // 경계 제한
-    const minX = Math.min(0, wrapperWidth - mapWidth);
-    const minY = Math.min(0, wrapperHeight - mapHeight);
+    // 맵이 wrapper보다 작아지지 않도록 최소 스케일 계산
+    const minScaleX = wrapperWidth / 1200;
+    const minScaleY = wrapperHeight / 900;
+    const minScale = Math.max(minScaleX, minScaleY);
 
-    currentTranslateX = Math.max(minX, Math.min(0, currentTranslateX));
-    currentTranslateY = Math.max(minY, Math.min(0, currentTranslateY));
+    // 현재 스케일이 최소 스케일보다 작아지지 않도록 제한
+    if (currentScale < minScale) {
+        currentScale = minScale;
+    }
+
+    // 경계 제한 강화
+    const maxTranslateX = 0;
+    const maxTranslateY = 0;
+    const minTranslateX = wrapperWidth - mapWidth;
+    const minTranslateY = wrapperHeight - mapHeight;
+
+    // translate 값 제한
+    currentTranslateX = Math.min(maxTranslateX, Math.max(minTranslateX, currentTranslateX));
+    currentTranslateY = Math.min(maxTranslateY, Math.max(minTranslateY, currentTranslateY));
 
     // transform 적용
     mapContainer.style.transform = 
@@ -1025,11 +1188,24 @@ mapWrapper.addEventListener('wheel', function(e) {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
+    // 현재 맵의 크기 계산
+    const wrapperWidth = mapWrapper.offsetWidth;
+    const wrapperHeight = mapWrapper.offsetHeight;
+    const minScaleX = wrapperWidth / 1200;
+    const minScaleY = wrapperHeight / 900;
+    const minScale = Math.max(minScaleX, minScaleY);
+
     const delta = -e.deltaY / Math.abs(e.deltaY); // 방향만 추출 (+1 또는 -1)
+    
+    // 축소하려고 할 때 (delta < 0) 최소 스케일에 도달했다면 더 이상 축소하지 않음
+    if (delta < 0 && currentScale <= minScale) {
+        return;
+    }
+    
     const zoomFactor = 0.6; // 줌 속도 조절 (값이 작을수록 부드러움)
     const targetScale = Math.min(
         Math.max(
-            mapConfig.minScale,
+            minScale,
             currentScale * (1 + delta * zoomFactor)
         ),
         mapConfig.maxScale
@@ -1040,7 +1216,6 @@ mapWrapper.addEventListener('wheel', function(e) {
         smoothZoom(targetScale, mouseX, mouseY);
     }
 });
-
 
 // 클릭 이벤트로 정보창과 검색결과 닫기
 // mapWrapper.addEventListener('click', function() {
@@ -1113,12 +1288,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (applyButton) {
         applyButton.remove();
     }
-});
-
-// 토글 버튼 클릭 시 control-panel 보이기/숨기기
-document.getElementById('toggle-button').addEventListener('click', function() {
-    const controlPanel = document.querySelector('.control-panel');
-    controlPanel.classList.toggle('show');  // 'show' 클래스를 토글하여 표시 여부 결정
 });
 
 document.addEventListener('contextmenu', function(event) {
