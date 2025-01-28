@@ -841,8 +841,8 @@ mapWrapper.addEventListener('wheel', function(e) {
     }
 });
 
-let initialDistance = 0;
-let isPinching = false;
+let pinchCenterX = 0;
+let pinchCenterY = 0;
 
 // 터치 시작 이벤트 핸들러
 mapContainer.addEventListener('touchstart', (e) => {
@@ -855,6 +855,10 @@ mapContainer.addEventListener('touchstart', (e) => {
         // 두 손가락으로 확대/축소 시작
         isPinching = true;
         initialDistance = getDistance(e.touches[0], e.touches[1]);
+
+        // 두 손가락의 중심 계산 (확대/축소 기준점)
+        pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
     }
 });
 
@@ -883,10 +887,8 @@ mapContainer.addEventListener('touchmove', (e) => {
         );
 
         if (Math.abs(targetScale - currentScale) > 0.01) {
-            // 터치한 위치를 기준으로 줌
-            const touchX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-            const touchY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-            smoothZoom(targetScale, touchX, touchY);
+            // 확대/축소할 때, 터치 중심을 기준으로 이동
+            smoothZoom(targetScale, pinchCenterX, pinchCenterY);
             initialDistance = currentDistance; // 확대/축소에 맞춰 초기 거리 재설정
         }
     }
@@ -909,7 +911,7 @@ function getDistance(touch1, touch2) {
 }
 
 // 부드러운 줌 함수 (기존의 smoothZoom 함수 사용)
-function smoothZoom(targetScale, touchX, touchY) {
+function smoothZoom(targetScale, mouseX, mouseY) {
     const startScale = currentScale;
     const scaleDiff = targetScale - startScale;
     const duration = 300;
@@ -918,9 +920,9 @@ function smoothZoom(targetScale, touchX, touchY) {
         cancelAnimationFrame(zoomAnimation);
     }
 
-    // 화면 상의 터치 위치를 기준으로 줌을 진행
-    const viewportX = touchX;
-    const viewportY = touchY;
+    // 맵 상에서 터치한 지점 (마우스 위치)을 기준으로 계산
+    const viewportX = mouseX;
+    const viewportY = mouseY;
 
     const mapX = (viewportX - currentTranslateX) / currentScale;
     const mapY = (viewportY - currentTranslateY) / currentScale;
