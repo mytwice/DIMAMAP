@@ -724,6 +724,8 @@ let lastTouchY = 0;
 let isTouching = false;
 let lastTapTime = 0;
 let initialPinchScale = 1;
+let pinchStartX = 0;  // 핀치 시작 X 좌표
+let pinchStartY = 0;  // 핀치 시작 Y 좌표
 
 // 터치 시작 이벤트 핸들러
 mapContainer.addEventListener('touchstart', function(e) {
@@ -755,6 +757,11 @@ mapContainer.addEventListener('touchstart', function(e) {
         // 멀티 터치 (핀치 줌)
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
+        
+        // 핀치 시작 지점 저장 (두 손가락의 중심점)
+        pinchStartX = (touch1.clientX + touch2.clientX) / 2;
+        pinchStartY = (touch1.clientY + touch2.clientY) / 2;
+        
         initialTouchDistance = Math.hypot(
             touch2.clientX - touch1.clientX,
             touch2.clientY - touch1.clientY
@@ -794,10 +801,6 @@ mapContainer.addEventListener('touchmove', function(e) {
             touch2.clientY - touch1.clientY
         );
         
-        // 핀치 제스처의 중심점 계산
-        const centerX = (touch1.clientX + touch2.clientX) / 2;
-        const centerY = (touch1.clientY + touch2.clientY) / 2;
-        
         // 스케일 계산
         const scaleFactor = currentTouchDistance / initialTouchDistance;
         const targetScale = Math.min(
@@ -808,19 +811,19 @@ mapContainer.addEventListener('touchmove', function(e) {
             mapConfig.maxScale
         );
         
-        // 즉시 확대/축소 적용
-        currentScale = targetScale;
-        
-        // 중심점 기준으로 확대/축소
+        // 핀치 시작 지점을 기준으로 확대/축소
         const rect = mapWrapper.getBoundingClientRect();
-        const mouseX = centerX - rect.left;
-        const mouseY = centerY - rect.top;
+        const mouseX = pinchStartX - rect.left;
+        const mouseY = pinchStartY - rect.top;
         
         // 맵 상의 마우스 위치 계산
         const mapX = (mouseX - currentTranslateX) / currentScale;
         const mapY = (mouseY - currentTranslateY) / currentScale;
         
-        // 새로운 translate 값 계산
+        // 즉시 확대/축소 적용
+        currentScale = targetScale;
+        
+        // 핀치 시작 지점을 기준으로 새로운 translate 값 계산
         currentTranslateX = mouseX - (mapX * currentScale);
         currentTranslateY = mouseY - (mapY * currentScale);
         
@@ -833,6 +836,8 @@ mapContainer.addEventListener('touchend', function(e) {
     isTouching = false;
     initialTouchDistance = 0;
     initialPinchScale = currentScale;
+    pinchStartX = 0;
+    pinchStartY = 0;
     
     // 바운스 효과 적용
     const wrapperWidth = mapWrapper.offsetWidth;
@@ -862,6 +867,8 @@ mapContainer.addEventListener('touchcancel', function() {
     isTouching = false;
     initialTouchDistance = 0;
     initialPinchScale = currentScale;
+    pinchStartX = 0;
+    pinchStartY = 0;
 });
 
 // 부드러운 줌 함수
