@@ -593,16 +593,49 @@ function animateScroll(targetX, targetY) {
     requestAnimationFrame(scrollStep);
 }
 
-// 핀 생성 함수
+// 핀 생성 함수 수정
 function createPin(x, y, details = {}) {
     const pin = document.createElement('div');
     pin.className = 'pin';
     pin.style.left = `${x}px`;
     pin.style.top = `${y}px`;
 
-    pin.addEventListener('click', function(e) {
-        e.stopPropagation();
+    // 클릭과 터치 이벤트 모두 처리
+    const handlePinInteraction = function(e) {
+        e.stopPropagation();  // 이벤트 버블링 중지
         showPinInfoBox(pin, details);
+    };
+
+    // 데스크톱 클릭 이벤트
+    pin.addEventListener('click', handlePinInteraction);
+    
+    // 모바일 터치 이벤트
+    pin.addEventListener('touchstart', function(e) {
+        e.stopPropagation();  // 지도의 터치 이벤트 중지
+        
+        // 터치 시작 시간 저장
+        this.touchStartTime = new Date().getTime();
+        this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
+    });
+
+    pin.addEventListener('touchend', function(e) {
+        e.stopPropagation();  // 지도의 터치 이벤트 중지
+        
+        // 터치 종료 시간과 이동 거리 계산
+        const touchEndTime = new Date().getTime();
+        const touchTime = touchEndTime - this.touchStartTime;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchDistance = Math.hypot(
+            touchEndX - this.touchStartX,
+            touchEndY - this.touchStartY
+        );
+
+        // 짧은 터치(500ms 이하)와 작은 이동 거리(10px 이하)일 때만 핀 정보 표시
+        if (touchTime < 500 && touchDistance < 10) {
+            handlePinInteraction(e);
+        }
     });
 
     mapContainer.appendChild(pin);
