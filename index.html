@@ -841,66 +841,128 @@ mapWrapper.addEventListener('wheel', function(e) {
     }
 });
 
-let touchStartX, touchStartY;
-let initialTouchDistance = 0;
-let initialScale = 1;
+let initialDistance = 0;
+let isPinching = false;
 
-// 터치 시작
-mapContainer.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    touchStartX = touch.clientX - currentTranslateX;
-    touchStartY = touch.clientY - currentTranslateY;
-
-    // 두 손가락 터치 (줌)
-    if (e.touches.length === 2) {
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        initialTouchDistance = Math.sqrt(
-            Math.pow(touch2.clientX - touch1.clientX, 2) + 
-            Math.pow(touch2.clientY - touch1.clientY, 2)
-        );
-        initialScale = currentScale;
-    }
-});
-
-// 터치 이동
-mapContainer.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-
-    // 한 손가락 드래그
+// 터치 시작 이벤트 핸들러
+mapContainer.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        currentTranslateX = touch.clientX - touchStartX;
-        currentTranslateY = touch.clientY - touchStartY;
-        updateMapTransform();
+        // 한 손가락 터치로 드래그 시작
+        isTouchMoving = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+        // 두 손가락으로 확대/축소 시작
+        isPinching = true;
+        initialDistance = getDistance(e.touches[0], e.touches[1]);
     }
-    // 두 손가락 줌
-    else if (e.touches.length === 2) {
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        const currentTouchDistance = Math.sqrt(
-            Math.pow(touch2.clientX - touch1.clientX, 2) + 
-            Math.pow(touch2.clientY - touch1.clientY, 2)
+});
+
+// 터치 이동 이벤트 핸들러
+mapContainer.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (isTouchMoving && e.touches.length === 1) {
+        // 한 손가락으로 이동
+        const deltaX = e.touches[0].clientX - startX;
+        const deltaY = e.touches[0].clientY - startY;
+
+        currentTranslateX += deltaX;
+        currentTranslateY += deltaY;
+
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+
+        updateMapTransform();
+    } else if (isPinching && e.touches.length === 2) {
+        // 두 손가락으로 확대/축소
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const scaleFactor = currentDistance / initialDistance;
+        const targetScale = Math.min(
+            Math.max(mapConfig.minScale, currentScale * scaleFactor),
+            mapConfig.maxScale
         );
 
-        // 새로운 스케일 계산
-        const scale = (currentTouchDistance / initialTouchDistance) * initialScale;
-        currentScale = Math.min(Math.max(scale, mapConfig.minScale), mapConfig.maxScale);
-        
-        updateMapTransform();
+        if (Math.abs(targetScale - currentScale) > 0.01) {
+            // 터치한 위치를 기준으로 줌
+            const touchX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const touchY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            smoothZoom(targetScale, touchX, touchY);
+            initialDistance = currentDistance; // 확대/축소에 맞춰 초기 거리 재설정
+        }
     }
 });
 
-// 터치 종료
-mapContainer.addEventListener('touchend', function(e) {
-    initialTouchDistance = 0;
+// 터치 끝 이벤트 핸들러
+mapContainer.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+        // 터치가 끝났을 때
+        isTouchMoving = false;
+        isPinching = false;
+    }
 });
 
-// 터치 취소
-mapContainer.addEventListener('touchcancel', function(e) {
-    initialTouchDistance = 0;
-});
+// 두 손가락 간의 거리 계산
+function getDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// 부드러운 줌 함수 (기존의 smoothZoom 함수 사용)
+function smoothZoom(targetScale, touchX, touchY) {
+    const startScale = currentScale;
+    const scaleDiff = targetScale - startScale;
+    const duration = 300;
+
+    if (zoomAnimation) {
+        cancelAnimationFrame(zoomAnimation);
+    }
+
+    // 화면 상의 터치 위치를 기준으로 줌을 진행
+    const viewportX = touchX;
+    const viewportY = touchY;
+
+    const mapX = (viewportX - currentTranslateX) / currentScale;
+    const mapY = (viewportY - currentTranslateY) / currentScale;
+
+    const startTime = performance.now();
+
+    function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        const easeProgress = 1 - (1 - progress) * (1 - progress);
+        const newScale = startScale + (scaleDiff * easeProgress);
+
+        const newTranslateX = viewportX - (mapX * newScale);
+        const newTranslateY = viewportY - (mapY * newScale);
+
+        const mapWidth = 1200 * newScale;
+        const mapHeight = 900 * newScale;
+        const wrapperWidth = mapWrapper.offsetWidth;
+        const wrapperHeight = mapWrapper.offsetHeight;
+
+        const minX = Math.min(0, wrapperWidth - mapWidth);
+        const minY = Math.min(0, wrapperHeight - mapHeight);
+
+        currentScale = newScale;
+        currentTranslateX = Math.max(minX, Math.min(0, newTranslateX));
+        currentTranslateY = Math.max(minY, Math.min(0, newTranslateY));
+
+        updateMapTransform();
+
+        if (progress < 1) {
+            zoomAnimation = requestAnimationFrame(animate);
+        }
+    }
+
+    zoomAnimation = requestAnimationFrame(animate);
+}
+
+// mapContainer의 변환을 업데이트하는 함수 (현재 맵 상태에 맞게 위치 및 크기를 조정)
+function updateMapTransform() {
+    mapContainer.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
+}
 
 // 클릭 이벤트로 정보창과 검색결과 닫기
 mapWrapper.addEventListener('click', function() {
