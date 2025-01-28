@@ -841,28 +841,24 @@ mapWrapper.addEventListener('wheel', function(e) {
     }
 });
 
-// 터치 이벤트 변수
-let initialScale = currentScale;
 let touchStartX, touchStartY;
+let initialTouchDistance = 0;
+let initialScale = 1;
 
 // 터치 시작
 mapContainer.addEventListener('touchstart', function(e) {
     e.preventDefault();
-    
-    if (e.touches.length === 1) {
-        // 단일 터치
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        isDragging = true;
-    } 
-    else if (e.touches.length === 2) {
-        // 두 손가락 터치 (줌)
-        isDragging = false;
+    const touch = e.touches[0];
+    touchStartX = touch.clientX - currentTranslateX;
+    touchStartY = touch.clientY - currentTranslateY;
+
+    // 두 손가락 터치 (줌)
+    if (e.touches.length === 2) {
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
-        lastTouchDistance = Math.hypot(
-            touch2.clientX - touch1.clientX,
-            touch2.clientY - touch1.clientY
+        initialTouchDistance = Math.sqrt(
+            Math.pow(touch2.clientX - touch1.clientX, 2) + 
+            Math.pow(touch2.clientY - touch1.clientY, 2)
         );
         initialScale = currentScale;
     }
@@ -871,60 +867,39 @@ mapContainer.addEventListener('touchstart', function(e) {
 // 터치 이동
 mapContainer.addEventListener('touchmove', function(e) {
     e.preventDefault();
-    
-    if (e.touches.length === 1 && isDragging) {
-        // 단일 터치 드래그
-        const deltaX = e.touches[0].clientX - touchStartX;
-        const deltaY = e.touches[0].clientY - touchStartY;
-        
-        currentTranslateX += deltaX;
-        currentTranslateY += deltaY;
-        
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        
+
+    // 한 손가락 드래그
+    if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        currentTranslateX = touch.clientX - touchStartX;
+        currentTranslateY = touch.clientY - touchStartY;
         updateMapTransform();
-    } 
+    }
+    // 두 손가락 줌
     else if (e.touches.length === 2) {
-        // 핀치 줌
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
-        const currentDistance = Math.hypot(
-            touch2.clientX - touch1.clientX,
-            touch2.clientY - touch1.clientY
+        const currentTouchDistance = Math.sqrt(
+            Math.pow(touch2.clientX - touch1.clientX, 2) + 
+            Math.pow(touch2.clientY - touch1.clientY, 2)
         );
+
+        // 새로운 스케일 계산
+        const scale = (currentTouchDistance / initialTouchDistance) * initialScale;
+        currentScale = Math.min(Math.max(scale, mapConfig.minScale), mapConfig.maxScale);
         
-        if (lastTouchDistance > 0) {
-            const scaleDiff = currentDistance / lastTouchDistance;
-            let newScale = initialScale * scaleDiff;
-            
-            // 스케일 제한
-            newScale = Math.min(Math.max(newScale, mapConfig.minScale), mapConfig.maxScale);
-            
-            // 중심점 계산
-            const centerX = (touch1.clientX + touch2.clientX) / 2;
-            const centerY = (touch1.clientY + touch2.clientY) / 2;
-            
-            currentScale = newScale;
-            updateMapTransform();
-        }
-        
-        lastTouchDistance = currentDistance;
+        updateMapTransform();
     }
 });
 
 // 터치 종료
 mapContainer.addEventListener('touchend', function(e) {
-    isDragging = false;
-    lastTouchDistance = 0;
-    initialScale = currentScale;
+    initialTouchDistance = 0;
 });
 
 // 터치 취소
-mapContainer.addEventListener('touchcancel', function() {
-    isDragging = false;
-    lastTouchDistance = 0;
-    initialScale = currentScale;
+mapContainer.addEventListener('touchcancel', function(e) {
+    initialTouchDistance = 0;
 });
 
 // 클릭 이벤트로 정보창과 검색결과 닫기
