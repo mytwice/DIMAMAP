@@ -734,11 +734,12 @@ searchInput.addEventListener('input', function() {
     }
 });
 
-// updateMapTransform 함수 수정 
 function updateMapTransform() {
     const wrapperWidth = mapWrapper.offsetWidth;
     const wrapperHeight = mapWrapper.offsetHeight;
-    
+    const mapWidth = 1200 * currentScale;
+    const mapHeight = 900 * currentScale;
+
     // 맵이 wrapper보다 작아지지 않도록 최소 스케일 계산
     const minScaleX = wrapperWidth / 1200;
     const minScaleY = wrapperHeight / 900;
@@ -747,23 +748,16 @@ function updateMapTransform() {
     // 현재 스케일이 최소 스케일보다 작아지지 않도록 제한
     if (currentScale < minScale) {
         currentScale = minScale;
-    }
-
-    // 현재 맵 크기 계산
-    const mapWidth = 1200 * currentScale;
-    const mapHeight = 900 * currentScale;
-
-    // 맵이 화면 중앙에 오도록 최소/최대 translate 값 계산
-    const maxTranslateX = (wrapperWidth - mapWidth) / 2;
-    const minTranslateX = -mapWidth + wrapperWidth + maxTranslateX;
-    const maxTranslateY = (wrapperHeight - mapHeight) / 2;
-    const minTranslateY = -mapHeight + wrapperHeight + maxTranslateY;
-
-    // 맵이 최소 크기일 때는 중앙 정렬
-    if (currentScale === minScale) {
-        currentTranslateX = (wrapperWidth - mapWidth) / 2;
-        currentTranslateY = (wrapperHeight - mapHeight) / 2;
+        // 맵이 최소 크기일 때는 중앙에 위치하도록 조정
+        currentTranslateX = (wrapperWidth - (1200 * currentScale)) / 2;
+        currentTranslateY = (wrapperHeight - (900 * currentScale)) / 2;
     } else {
+        // 경계 제한
+        const maxTranslateX = Math.max(0, (wrapperWidth - mapWidth) / 2);
+        const minTranslateX = Math.min(0, wrapperWidth - mapWidth + (wrapperWidth - mapWidth) / 2);
+        const maxTranslateY = Math.max(0, (wrapperHeight - mapHeight) / 2);
+        const minTranslateY = Math.min(0, wrapperHeight - mapHeight + (wrapperHeight - mapHeight) / 2);
+
         // translate 값 제한
         currentTranslateX = Math.min(maxTranslateX, Math.max(minTranslateX, currentTranslateX));
         currentTranslateY = Math.min(maxTranslateY, Math.max(minTranslateY, currentTranslateY));
