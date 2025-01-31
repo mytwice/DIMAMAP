@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIMA MAP</title>
+    <style>
+        /* 기본 스타일 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            overflow: hidden; /* 페이지에서 스크롤바를 숨깁니다 */
+        }
+
+        #map-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            background: #8b8b8b;
+        }
+
+        #map-container {
+            position: absolute;
+            transform-origin: 0 0;
+            cursor: grab;
+            width: 100%;
+            height: 100%;
+        }
+
+        #map-container:active {
+            cursor: grabbing;
+        }
+
+        #map-image {
+            width: 1200px;
+            height: 900px;
+            user-select: none;
+            object-fit: contain; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+        }
+
+        /* 상단 컨트롤 패널 */
+        .control-panel {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 9999;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;  /* 항목들을 줄 바꿈이 가능하게 함 */
+            gap: 16px;  /* 항목 간의 간격 */
+        }
+
+            /* 검색창 */
+            .search-container {
+            left: 50%;
+            display: flex;
+
+            gap: 40px; /* 타이틀과 검색창 간 간격 */
+            margin-bottom: 00px; /* 컨테이너 간 간격 */
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;  /* 입력 필드 바로 아래 배치 */
+            left: 0;
+            width: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-height: 200px; /* 검색 결과가 너무 길어지지 않도록 제한 */
+            overflow-y: auto; /* 스크롤 가능 */
+            display: none; /* 기본적으로 숨김 */
+        }
+
+        .search-result-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: #f0f0f0;
+        }
+
+        .search-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .search-input {
+            flex: 1; /* 입력 창이 남은 공간을 차지하도록 설정 */
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* 필터링 그룹을 1줄에 배치 */
+        .filter-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: nowrap;  /* 필터 그룹은 한 줄에 배치 */
+        }
+
+        #category-filter {
+            display: flex;
+            flex-wrap: nowrap;  /* 한 줄로 배치 */
+            gap: 16px;
+            width: 100%;  /* 전체 너비 사용 */
+            overflow-x: auto;  /* 가로 스크롤을 추가 */
+            padding-bottom: 10px;  /* 스크롤바가 보이도록 아래 여백 추가 */
+        }
+
+        #category-filter label {
+            box-sizing: border-box;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            width: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-button {
+            padding: 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .filter-button:hover {
+            background: #1976D2;
+        }
+
+        /* 핀 및 정보 박스 */
+        .pin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            z-index: 1000;
+            cursor: pointer;
+            transform: translate(-50%, -95%);
+            transition: transform 0.2s;
+        }
+
+
+        /* 1순위 핀 스타일 - 마커 모양 */
+        .pin-primary::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23E91E63"><path d="M12 0C7.6 0 4 3.6 4 8c0 5.4 8 16 8 16s8-10.6 8-16c0-4.4-3.6-8-8-8zm0 12c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/></svg>') no-repeat center center;
+            background-size: contain;
+        }
+
+        /* 2순위 핀 스타일 - 원형 */
+        .pin-secondary {
+            width: 2px;
+            height: 2px;
+            background-color: #E91E63;
+            border-radius: 50%;
+            border: 1px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transform: translate(-50%, -50%);
+        }
+
+        /* 핀 라벨 스타일 */
+        .pin-label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            font-size: 7px;
+            transform: translate(59%, 10%);
+            border-radius: 5px;
+            white-space: nowrap;
+            text-align: center;
+            display: none;
+            z-index: 1001;
+            transition: all 0.2s ease-in-out;
+        }
+        
+
+        .pin-info-box {
+            position: fixed;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1001;
+            max-width: 300px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .pin-info-box strong {
+            color: #333;
+            display: inline-block;
+            width: 80px;
+        }
+
+        .pin-info-box a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .pin-info-box a:hover {
+            text-decoration: underline;
+        }
+
+        .pin-info-box .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            color: #666;
+            line-height: 1;
+        }
+
+        .pin-info-box .close-btn:hover {
+            color: #333;
+        }
+
+        /* 카테고리 스크롤 */
+        .category-scroll {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 10px 0;
+            gap: 10px;
+        }
+
+        .category-item {
+            flex: 0 0 auto;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+    /* 기존 .mobile-nav 스타일을 수정 */
+    .mobile-nav {
+        display: flex;
+        position: fixed;
+        flex-direction: column;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        padding: 15px;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        border-radius: 10px 0 0 10px;
+    }
+
+    /* 네비게이션 항목 스타일 수정 */
+    .mobile-nav a {
+        padding: 12px;
+        text-align: left;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .mobile-nav a:last-child {
+        border-bottom: none;
+    }
+
+    /* 네비게이션 바 우상단에 이미지와 텍스트 */
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        bottom: 30px;
+        right: 50px;
+    }
+
+        /* 팝업 기본 숨김 */
+    .popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 팝업 내용 스타일 */
+    .popup-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        width: 300px;
+        position: relative;
+    }
+
+    /* 닫기 버튼 */
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    /* 로고 이미지 스타일 */
+    .logo-img {
+        width: 140px; /* 이미지 크기 설정 */
+        height: auto;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+    }
+
+    /* 로고 텍스트 스타일 */
+    .logo-text {
+        font-size: 13px; /* 텍스트 크기 */
+        font-weight: bold;
+        margin-right: 20px; /* 이미지와 텍스트 사이 여백 */
+        color: #f9f9f9; /* 텍스트 색상 */
+    }
+
+    .building-list {
+        position: fixed;
+        bottom: 0px;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 15px 15px 0 0;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        height: 30vh; /* 고정 높이 설정 */
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto; /* 세로 스크롤 가능하게 설정 */
+        -webkit-overflow-scrolling: touch; /* 모바일에서 부드러운 스크롤 */
+    }
+
+.building-container {
+    padding: 20px;
+}
+
+.building-section {
+    margin-bottom: 20px;
+}
+
+.building-section h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.floor-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.floor-item {
+    background: #f0f0f0;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+
+.floor-item:hover {
+    background: #e0e0e0;
+}
+
+.locations-list {
+        margin-top: 10px;
+    }
+    
+    .location-item {
+        padding: 8px;
+        margin: 4px 0;
+        background: #f8f8f8;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    
+    .location-item:hover {
+        background: #f0f0f0;
+    }
+
+        
+    @media (max-width: 768px) {
+        /* 모바일 화면에서는 하단에 표시 */
+    .mobile-nav {
+        flex-direction: row;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        transform: none;
+        padding: 18px 0;
+        justify-content: space-around;
+        border-radius: 0;
+    }
+
+    .mobile-nav a {
+        padding: 0px;
+        text-align: center;
+        flex-grow: 1;
+        border-bottom: none;
+        border-right: 1px solid #ddd;
+    }
+
+            /* 네비게이션 바 우상단에 이미지와 텍스트 */
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        bottom: 90px;
+        right: 10px;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+    }
+
+    /* 로고 이미지 스타일 */
+    .logo-img {
+        width: 130px; /* 이미지 크기 설정 */
+        height: auto;
+    }
+
+    /* 로고 텍스트 스타일 */
+    .logo-text {
+        font-size: 12px; /* 텍스트 크기 */
+        font-weight: bold;
+        margin-right: 20px; /* 이미지와 텍스트 사이 여백 */
+        color: #f9f9f9; /* 텍스트 색상 */
+    }
+    .control-panel {
+        position: fixed;
+        top: 6px;
+        left: 50%;
+        width: 100%;
+        background: white;
+        padding: 10px 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        background: transparent;
+        box-shadow: none;
+        padding: 30px;
+    }
+
+    /* 모바일 네비게이션 */
+.mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 18px 0;
+    justify-content: space-around;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* 네비게이션 항목 사이에 구분선 추가 */
+.mobile-nav a {
+    padding: 0px;
+    text-align: center;
+    flex-grow: 1;
+    border-right: 1px solid #ddd; /* 항목 사이에 구분선 */
+}
+
+    /* 마지막 항목의 구분선 없애기 */
+    .mobile-nav a:last-child {
+        border-right: none;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: #666;
+        font-size: 15px;
+        gap: 4px;
+    }
+
+    
+    .filter-group {
+        display: none; /* 필터 그룹 숨김 */
+    }
+    
+    .bottom-nav {
+        display: block; /* 모바일에서만 표시 */
+    }
+    
+    #map-wrapper {
+        padding-bottom: 10px; /* 하단 네비게이션 높이만큼 여백 */
+    }
+    
+    /* 카테고리 스크롤 활성화 */
+    #category-filter {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 0;
+        gap: 10px;
+        width: 86%;
+        margin: 0 auto;
+    }
+    
+    #category-filter label {
+        flex: 0 0 auto;
+        padding: 8px 16px;
+        background: #f0f0f0;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    /* 검색창을 중앙에 배치 */
+    .search-container {
+        background: white;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        width: 85%;
+        max-width: 800px; /* 최대 너비 설정 */
+        margin: 0 auto; /* 자동으로 좌우 여백 */
+    }
+
+    .search-input {
+        border: none;
+        padding: 8px;
+        width: 100%;
+        font-size: 16px;
+    }
+
+    /* 카테고리 스타일 */
+    #category-filter {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 10px 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #category-filter label {
+        background: #e155b5;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+
+    /* 하단 건물 정보 */
+    .bottom-info {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #4267B2;
+        color: white;
+        padding: 20px;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .bottom-info div {
+        margin: 5px 0;
+        font-size: 16px;
+    }
+
+    .building-list {
+        bottom: 70px;
+    }
+}
+
+    @media (max-width: 480px) {
+        /* 작은 화면에서 라벨 크기 및 입력 크기 조정 */
+        .search-input {
+            font-size: 14px;
+            padding: 6px;
+        }
+
+        .filter-select {
+            font-size: 14px;
+            padding: 6px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <!-- 검색 창 -->
+        <div class="search-container">
+            <span class="search-title">DIMA MAP</span> <!-- 타이틀 추가 -->
+            <input type="text" class="search-input" placeholder="검색어를 입력하세요..." id="search-input">
+            <div class="search-results" id="search-results"></div>
+        </div>
+
+        <!-- 필터링 -->
+        <div class="filter-group">
+            <label for="building-filter">건물</label>
+            <select id="building-filter" class="filter-select"></select>
+
+            <label for="floor-filter">층</label>
+            <select id="floor-filter" class="filter-select"></select>
+        </div>
+
+        <!-- 카테고리 필터 -->
+        <div id="category-filter">
+            <label><input type="checkbox" name="category" value=""> 전체</label>
+            <!-- 동적으로 카테고리 라디오 버튼 추가 -->
+        </div>
+    </div>
+
+    <div id="map-wrapper">
+        <div id="map-container">
+            <img id="map-image" src="map.png" alt="지도" draggable="false">
+        </div>
+    </div>
+
+    <div class="nav-logo">
+        <span class="logo-text">위성 제공 ㅣ 국토지리정보원</span>
+        <img src="sub0705_01_Open_Mark_01.jpg" alt="국토지리정보원" class="logo-img">
+    </div>
+
+    <div class="building-list" style="display: none;">
+        <div class="building-container">
+            <!-- 건물과 층 정보가 동적으로 추가됨 -->
+        </div>
+    </div>
+
+    <nav class="mobile-nav">
+        <a href="https://mytwice.github.io/DIMAMAP/" class="nav-item">
+            <span>🏠</span>
+            <span>홈</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span>🔍</span>
+            <span>건물</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span>📍</span>
+            <span>안전지도</span>
+        </a>
+        <a href="#" class="nav-item" id="openPopup">
+            <span>ℹ️</span>
+            <span>제보/정보</span>
+        </a>
+    </nav>
+
+    <!-- 팝업 창 -->
+<div id="popup" class="popup">
+    <div class="popup-content">
+        <span class="close">&times;</span>
+        <h2>제보/정보</h2>
+        <p>I DIMA 프로젝트</p>
+        <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
+    </div>
+</div>
+</body>
+
+<script>
+// 변수 선언
+const mapWrapper = document.getElementById('map-wrapper');
+const mapContainer = document.getElementById('map-container');
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+let pins = [];
+let isDragging = false;
+let startX, startY;
+let currentTranslateX = 0, currentTranslateY = 0, currentScale = 1;
+let mode = 'move';
+let selectedPin = null;
+let activeInfoBox = null;
+let lastTouchDistance = 0;
+let zoomAnimation;
+let initialTouchX, initialTouchY;
+let isTouchMoving = false;
+let lastTouchTime = 0;
+const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
+
+// 맵 설정
+const mapConfig = {
+    initialScale: 2.6,        // 2.6에서 1.7로 변경
+    initialX: -565,           // 0에서 -70으로 변경
+    initialY: -650,
+    minScale: 1.0,            // 2.5에서 0으로 변경
+    maxScale: 9,
+    zoomSpeed: 1,
+    mobile: {
+        initialScale: 1.2,
+        initialX: -460,
+        initialY: -80
+    }
+};
+
+// 핀 데이터
+const pinsData = [
+  {
+    "id": "1738295368958",
+    "x": "581.43",
+    "y": "445.43",
+    "building": "지성관",
+    "floor": "",
+    "category": "",
+    "name": "",
+    "description": "",
+    "address": "",
+    "priority": "1순위"
+  },
+  {
+    "id": "1738295369774",
+    "x": "580.43",
+    "y": "419.43",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "",
+    "description": "",
+    "address": "",
+    "priority": "1순위"
+  },
+  {
+    "id": "1738295371056",
+    "x": "608.43",
+    "y": "444.43",
+    "building": "지성관",
+    "floor": "1",
+    "category": "",
+    "name": "s",
+    "description": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738295369774",
+    "x": "580.43",
+    "y": "419.43",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "ㅈㅈ",
+    "description": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738295369774",
+    "x": "580.43",
+    "y": "419.43",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "ㅈㅈ",
+    "description": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738295369774",
+    "x": "580.43",
+    "y": "419.43",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "ㅈㅈ",
+    "description": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738295369774",
+    "x": "580.43",
+    "y": "419.43",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "ㅈㅈ",
+    "description": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738295369774",
+    "x": "580.43",
+    "y": "419.43",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "ㅈㅈ",
+    "description": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738295371874",
+    "x": "612.43",
+    "y": "420.43",
+    "building": "지성관",
+    "floor": "3층",
+    "category": "",
+    "name": "sd",
+    "description": "",
+    "address": "",
+    "priority": "2순위"
+  }
+]
+
+// 필터 옵션 초기화 함수
+function initializeFilterOptions() {
+    const buildingFilter = document.getElementById('building-filter');
+    const floorFilter = document.getElementById('floor-filter');
+    const categoryFilter = document.getElementById('category-filter');
+
+    const buildings = [...new Set(pinsData.map(pin => pin.building))];
+    const floors = [...new Set(pinsData.map(pin => pin.floor))];
+    const categories = [...new Set(pinsData.map(pin => pin.category))];
+
+    // 필터 옵션 채우기
+    function populateFilter(filter, options, type = 'select') {
+        if (type === 'checkbox') {
+            filter.innerHTML = ''; // 기존 콘텐츠 초기화
+            options.forEach(option => {
+                if (option) {
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="checkbox" name="category" value="${option}">${option}</label>`;
+                    filter.appendChild(label);
+                }
+            });
+        } else {
+            filter.innerHTML = '<option value="">전체</option>';
+            options.forEach(option => {
+                if (option) {
+                    filter.innerHTML += `<option value="${option}">${option}</option>`;
+                }
+            });
+        }
+    }
+
+    populateFilter(buildingFilter, buildings);
+    populateFilter(floorFilter, floors);
+    populateFilter(categoryFilter, categories, 'checkbox');
+}
+
+// 검색 기능
+searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    if (searchTerm.length < 1) {
+        searchResults.style.display = 'none';
+        return;
+    }
+
+    const filteredPins = pinsData.filter(pin => 
+        pin.name.toLowerCase().includes(searchTerm) ||
+        pin.building.toLowerCase().includes(searchTerm) ||
+        pin.description.toLowerCase().includes(searchTerm)
+    );
+
+    searchResults.innerHTML = '';
+    if (filteredPins.length > 0) {
+        filteredPins.forEach(pin => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'search-result-item';
+            resultItem.innerHTML = `
+                <div><strong>${pin.name}</strong></div>
+                <div>${pin.building} ${pin.floor}</div>
+            `;
+            resultItem.addEventListener('click', () => {
+                const pinObj = pins.find(p => 
+                    p.coordinates.x == pin.x && 
+                    p.coordinates.y == pin.y
+                );
+
+                if (pinObj) {
+                    pinObj.pin.style.display = 'block'; // 핀 강제 표시
+                    moveToPin(pinObj.pin);
+                    showPinInfoBox(pinObj.pin, pin);
+                }
+
+                // 검색 결과 유지
+                searchResults.style.display = 'block';
+                // searchInput.value = '';  //
+            });
+            searchResults.appendChild(resultItem);
+        });
+        searchResults.style.display = 'block';
+    } else {
+        searchResults.style.display = 'none';
+    }
+});
+
+// 검색 결과와 일치하는 핀만 보이게 하기
+function filterPinsBySearch() {
+    const searchTerm = searchInput.value.toLowerCase(); // 검색어 가져오기
+
+    // 검색어가 포함된 핀만 필터링하여 표시
+    pins.forEach(pinObj => {
+        const pinData = pinObj.pin.dataset;
+        const matchesSearch = (
+            pinData.name && pinData.name.toLowerCase().includes(searchTerm) ||
+            pinData.building && pinData.building.toLowerCase().includes(searchTerm) ||
+            pinData.category && pinData.category.toLowerCase().includes(searchTerm)
+        );
+
+        if (matchesSearch) {
+            pinObj.pin.style.display = 'block'; // 일치하면 표시
+        } else {
+            pinObj.pin.style.display = 'none'; // 일치하지 않으면 숨김
+        }
+    });
+}
+
+// 검색창에 입력될 때마다 필터링 적용
+searchInput.addEventListener('input', filterPinsBySearch);
+
+// updateMapTransform 함수 수정 
+function updateMapTransform() {
+    const wrapperWidth = mapWrapper.offsetWidth;
+    const wrapperHeight = mapWrapper.offsetHeight;
+    const mapWidth = 1200 * currentScale;
+    const mapHeight = 900 * currentScale;
+
+    // 맵이 wrapper보다 작아지지 않도록 최소 스케일 계산
+    const minScaleX = wrapperWidth / 1200;
+    const minScaleY = wrapperHeight / 900;
+    const minScale = Math.max(minScaleX, minScaleY);
+
+    // 현재 스케일이 최소 스케일보다 작아지지 않도록 제한
+    if (currentScale < minScale) {
+        currentScale = minScale;
+    }
+
+    // 경계 제한 강화
+    const maxTranslateX = 0;
+    const maxTranslateY = 0;
+    const minTranslateX = wrapperWidth - mapWidth;
+    const minTranslateY = wrapperHeight - mapHeight;
+
+    // translate 값 제한
+    currentTranslateX = Math.min(maxTranslateX, Math.max(minTranslateX, currentTranslateX));
+    currentTranslateY = Math.min(maxTranslateY, Math.max(minTranslateY, currentTranslateY));
+
+    // transform 적용
+    mapContainer.style.transform = 
+        `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
+
+    // 핀 정보창 위치 업데이트
+    if (activeInfoBox && selectedPin) {
+        const pinRect = selectedPin.getBoundingClientRect();
+        activeInfoBox.style.left = `${pinRect.left}px`;
+        activeInfoBox.style.top = `${pinRect.top - 100}px`;
+    }
+}
+
+function animateScroll(targetX, targetY) {
+    const duration = 800; // 애니메이션 지속 시간 (ms)
+    const startX = currentTranslateX;
+    const startY = currentTranslateY;
+    const deltaX = targetX - startX;
+    const deltaY = targetY - startY;
+    const startTime = performance.now();
+
+    function scrollStep(currentTime) {
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 2); // easeOutQuad
+
+        currentTranslateX = startX + deltaX * easeProgress;
+        currentTranslateY = startY + deltaY * easeProgress;
+
+        updateMapTransform();
+
+        if (progress < 1) {
+            requestAnimationFrame(scrollStep);
+        }
+    }
+
+    requestAnimationFrame(scrollStep);
+}
+
+// 핀 생성 함수 수정
+function createPin(x, y, details = {}) {
+    const pin = document.createElement('div');
+    pin.className = 'pin'; // 기본 클래스
+    
+    // 우선순위에 따라 추가 클래스 적용
+    if (details.priority === "1순위") {
+        pin.classList.add('pin-primary');
+    } else if (details.priority === "2순위") {
+        pin.classList.add('pin-secondary');
+    }
+    
+    pin.style.left = `${x}px`;
+    pin.style.top = `${y}px`;
+
+    // 핀의 우선순위 설정
+    pin.dataset.priority = details.priority || '미정';
+    pin.dataset.building = details.building || '미정';
+
+    // 핀 이름 오버레이 추가
+    const pinLabel = document.createElement('div');
+    pinLabel.className = 'pin-label';
+    pinLabel.innerText = details.name || '이름 없음';
+    pinLabel.style.display = 'none';
+    pin.appendChild(pinLabel);
+
+    // 마우스 오버 시 이름 표시
+    pin.addEventListener('mouseenter', () => {
+        pinLabel.style.display = 'block';
+    });
+
+    pin.addEventListener('mouseleave', () => {
+        pinLabel.style.display = 'none';
+    });
+
+    // 모바일 터치 시 이름 표시
+    pin.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        pinLabel.style.display = 'block';
+        setTimeout(() => {
+            pinLabel.style.display = 'none';
+        }, 2000); // 2초 후 자동 숨김
+    });
+
+    // 클릭 이벤트 핸들러
+    const handlePinInteraction = function(e) {
+        e.stopPropagation();
+
+        // 1순위 핀을 클릭했을 때 안내창을 뜨지 않게 처리
+        if (details.priority === "1순위") {
+            showPriorityPins(details.building); // 같은 건물의 2순위 핀을 표시
+            showExitButton(); // Exit button appears when 2순위 pins are shown
+        } else {
+            // 2순위 핀만 안내창을 표시
+            showPinInfoBox(pin, details);
+        }
+    };
+
+    // 데스크톱 클릭 이벤트
+    pin.addEventListener('click', handlePinInteraction);
+    
+    // 모바일 터치 이벤트
+    pin.addEventListener('touchstart', function(e) {
+        e.stopPropagation();  // 지도의 터치 이벤트 중지
+        
+        // 터치 시작 시간 저장
+        this.touchStartTime = new Date().getTime();
+        this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
+    });
+
+    pin.addEventListener('touchend', function(e) {
+        e.stopPropagation();  // 지도의 터치 이벤트 중지
+        
+        // 터치 종료 시간과 이동 거리 계산
+        const touchEndTime = new Date().getTime();
+        const touchTime = touchEndTime - this.touchStartTime;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchDistance = Math.hypot(
+            touchEndX - this.touchStartX,
+            touchEndY - this.touchStartY
+        );
+
+        // 짧은 터치(500ms 이하)와 작은 이동 거리(10px 이하)일 때만 핀 정보 표시
+        if (touchTime < 500 && touchDistance < 10) {
+            handlePinInteraction(e);
+        }
+    });
+
+    mapContainer.appendChild(pin);
+    pins.push({
+        pin,
+        coordinates: { x, y },
+        ...details
+    });
+}
+
+// 1순위 핀을 클릭했을 때, 해당 건물에 속하는 2순위 핀 보이기
+function showPriorityPins(buildingName) {
+    // 모든 1순위 핀 숨기기
+    pins.forEach(pinObj => {
+        if (pinObj.pin.dataset.priority === "1순위") {
+            pinObj.pin.style.display = 'none'; // 모든 1순위 핀을 숨김
+        }
+    });
+
+    // 모든 핀 중에서 "2순위"이고, 건물이 해당 이름인 핀을 보이게 함
+    pins.forEach(pinObj => {
+        if (pinObj.pin.dataset.priority === "2순위" && pinObj.pin.dataset.building === buildingName) {
+            pinObj.pin.style.display = 'block'; // 해당 2순위 핀을 보이게 함
+        } else if (pinObj.pin.dataset.priority === "2순위") {
+            pinObj.pin.style.display = 'none'; // 2순위 핀 중 해당 건물이 아닌 것은 숨김
+        }
+    });
+}
+
+// 2순위 핀이 보일 때 "건물 나가기" 버튼과 층 버튼들을 표시하는 함수
+function showExitButton() {
+    // 건물 나가기 버튼 생성
+    if (exitButton === null) {
+        exitButton = document.createElement('div');
+        exitButton.className = 'exit-button-container';
+        exitButton.style.position = 'absolute';
+        exitButton.style.top = '200px';
+        exitButton.style.left = '90%';
+        exitButton.style.transform = 'translateX(-82%)';
+        exitButton.style.display = 'flex';
+        exitButton.style.flexDirection = 'column';
+        exitButton.style.gap = '10px';
+        
+        // 건물 나가기 버튼
+        const exitButtonElement = document.createElement('button');
+        exitButtonElement.className = 'exit-button';
+        exitButtonElement.innerText = '건물 나가기';
+        exitButtonElement.style.background = '#e155b5';
+        exitButtonElement.style.color = 'white';
+        exitButtonElement.style.padding = '8px 13px';
+        exitButtonElement.style.borderRadius = '20px';
+        exitButtonElement.style.whiteSpace = 'nowrap';
+        exitButtonElement.style.fontSize = '14px';
+        exitButtonElement.style.border = 'none';
+        exitButtonElement.style.cursor = 'pointer';
+        
+        exitButtonElement.addEventListener('click', function() {
+            hidePriorityPins();
+            hideExitButton();
+            if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
+        });
+        
+        // 층 버튼들을 담을 컨테이너
+        const floorButtonsContainer = document.createElement('div');
+        floorButtonsContainer.className = 'floor-buttons';
+        floorButtonsContainer.style.display = 'flex';
+        floorButtonsContainer.style.flexDirection = 'column';
+        floorButtonsContainer.style.gap = '5px';
+        
+        // 층 버튼 생성 (1F ~ 5F)
+        const floors = ['5층', '4층', '3층', '2층', '1층'];
+        floors.forEach(floor => {
+            const floorButton = document.createElement('button');
+            floorButton.className = 'floor-button';
+            floorButton.innerText = floor;
+            floorButton.style.background = '#4a4a4a';
+            floorButton.style.color = 'white';
+            floorButton.style.padding = '8px 13px';
+            floorButton.style.borderRadius = '20px';
+            floorButton.style.whiteSpace = 'nowrap';
+            floorButton.style.fontSize = '14px';
+            floorButton.style.border = 'none';
+            floorButton.style.cursor = 'pointer';
+            
+            // 호버 효과
+            floorButton.addEventListener('mouseover', () => {
+                floorButton.style.background = '#666666';
+            });
+            floorButton.addEventListener('mouseout', () => {
+                floorButton.style.background = '#4a4a4a';
+            });
+            
+            // 클릭 이벤트
+            floorButton.addEventListener('click', () => {
+                highlightSelectedFloor(floor);
+            });
+            
+            floorButtonsContainer.appendChild(floorButton);
+        });
+        
+        exitButton.appendChild(exitButtonElement);
+        exitButton.appendChild(floorButtonsContainer);
+        document.body.appendChild(exitButton);
+    } else {
+        exitButton.style.display = 'block';
+    }
+}
+
+// 선택된 층의 핀만 표시하는 함수
+function highlightSelectedFloor(selectedFloor) {
+    pins.forEach(pinObj => {
+        if (pinObj.pin.dataset.priority === "2순위") {
+            // 핀의 층 정보와 선택된 층이 일치하는 경우에만 표시
+            const pinFloor = pinObj.floor ? pinObj.floor.toUpperCase() : null;
+            if (pinFloor === selectedFloor) {
+                pinObj.pin.style.display = 'block';
+            } else {
+                pinObj.pin.style.display = 'none';
+            }
+        }
+    });
+}
+
+// "건물 나가기" 버튼을 숨기는 함수
+function hideExitButton() {
+    if (exitButton) { // 버튼이 존재할 때만 실행
+        exitButton.style.display = 'none';
+    }
+}
+
+// "1순위"만 보이도록 2순위 핀을 숨기는 함수
+function hidePriorityPins() {
+    pins.forEach(pinObj => {
+        if (pinObj.pin.dataset.priority === "2순위") {
+            pinObj.pin.style.display = 'none'; // 모든 2순위 핀을 숨김
+        }
+    });
+    showOnlyFirstPriorityPins(); // 1순위 핀만 보이게
+}
+
+// 1순위 핀만 보이도록 하는 함수
+function showOnlyFirstPriorityPins() {
+    pins.forEach(pinObj => {
+        if (pinObj.pin.dataset.priority === "1순위") {
+            pinObj.pin.style.display = 'block'; // 1순위 핀만 보이게 함
+        }
+    });
+}
+
+
+// 핀 정보창 표시 함수
+function showPinInfoBox(pin, pinData) {
+    if (activeInfoBox) {
+        activeInfoBox.remove();
+    }
+
+    const pinRect = pin.getBoundingClientRect();
+    const infoBox = document.createElement('div');
+    infoBox.className = 'pin-info-box';
+    
+    infoBox.style.left = `${pinRect.left}px`;
+    infoBox.style.top = `${pinRect.top - 100}px`;
+
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.onclick = function(e) {
+        e.stopPropagation();
+        infoBox.style.display = 'none';
+        activeInfoBox = null;
+    };
+    infoBox.appendChild(closeBtn);
+
+    // 값이 있는 항목만 표시하도록 수정
+    const info = [];
+    if (pinData.name) info.push(`<strong>이름:</strong> ${pinData.name}`);
+    if (pinData.building) info.push(`<strong>건물:</strong> ${pinData.building}`);
+    if (pinData.floor) info.push(`<strong>층:</strong> ${pinData.floor}`);
+    if (pinData.category) info.push(`<strong>카테고리:</strong> ${pinData.category}`);
+    if (pinData.description) info.push(`<strong>설명:</strong> ${pinData.description}`);
+    if (pinData.address) info.push(`<strong>주소:</strong> <a href="${pinData.address}" target="_blank">${pinData.address}</a>`);
+
+    infoBox.innerHTML += info.join('<br>');
+    
+    document.body.appendChild(infoBox);
+    infoBox.style.display = 'block';
+    activeInfoBox = infoBox;
+    selectedPin = pin;
+
+    // 정보창이 화면 밖으로 나가지 않도록 조정
+    const infoBoxRect = infoBox.getBoundingClientRect();
+    if (infoBoxRect.top < 0) {
+        infoBox.style.top = '10px';
+    }
+    if (infoBoxRect.left < 0) {
+        infoBox.style.left = '10px';
+    }
+    if (infoBoxRect.right > window.innerWidth) {
+        infoBox.style.left = `${window.innerWidth - infoBoxRect.width - 10}px`;
+    }
+
+        // 클릭 이벤트 리스너
+        closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        infoBox.remove();
+        activeInfoBox = null;
+        selectedPin = null;
+    });
+
+    infoBox.appendChild(closeBtn);
+}
+
+// 필터링 함수
+function filterPins() {
+    const buildingFilter = document.getElementById('building-filter').value;
+    const floorFilter = document.getElementById('floor-filter').value;
+    
+    // 선택된 카테고리 체크박스 값 가져오기
+    const selectedCategories = [...document.querySelectorAll('input[name="category"]:checked')]
+        .map(checkbox => checkbox.value);
+    
+    // 검색어 가져오기
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    
+    // 필터 및 검색이 모두 비어있으면 filterPins2 실행
+    if (!buildingFilter && !floorFilter && selectedCategories.length === 0 && searchTerm === "") {
+        filterPins2(); // 1순위와 3순위 핀만 표시
+        return;
+    }
+
+    // 필터링 적용
+    pins.forEach(pinObj => {
+        const matchesBuilding = !buildingFilter || pinObj.building === buildingFilter;
+        const matchesFloor = !floorFilter || pinObj.floor === floorFilter;
+        const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(pinObj.category);
+        const matchesSearch = (
+            pinObj.name && pinObj.name.toLowerCase().includes(searchTerm) ||
+            pinObj.building && pinObj.building.toLowerCase().includes(searchTerm) ||
+            pinObj.category && pinObj.category.toLowerCase().includes(searchTerm)
+        );
+
+        if (matchesBuilding && matchesFloor && matchesCategory && matchesSearch) {
+            pinObj.pin.style.display = 'block';
+        } else {
+            pinObj.pin.style.display = 'none';
+        }
+    });
+}
+
+// 필터링 함수 수정 - 최초 실행시 1순위 핀만 보이도록
+function filterPins2() {
+    const priorityFilter = "1순위";
+    
+    pins.forEach(pinObj => {
+        // 1순위이거나 3순위인 핀만 표시
+        const matchesPriority = pinObj.priority === priorityFilter || pinObj.priority === "3순위";
+        
+        if (matchesPriority) {
+            pinObj.pin.style.display = 'block';
+        } else {
+            pinObj.pin.style.display = 'none';
+        }
+    });
+}
+
+// 특정 핀으로 이동하는 함수
+function moveToPin(pin) {
+    const pinRect = pin.getBoundingClientRect();
+    const wrapperRect = mapWrapper.getBoundingClientRect();
+    
+    const targetX = -(pin.offsetLeft * currentScale - (wrapperRect.width / 2));
+    const targetY = -(pin.offsetTop * currentScale - (wrapperRect.height / 2));
+    
+    mapContainer.style.transition = 'transform 0.5s ease-out';
+    currentTranslateX = targetX;
+    currentTranslateY = targetY;
+    updateMapTransform();
+    
+    setTimeout(() => {
+        mapContainer.style.transition = '';
+    }, 500);
+}
+
+// 터치 이벤트 관련 변수
+let initialTouchDistance = 0;
+let lastTouchX = 0;
+let lastTouchY = 0;
+let isTouching = false;
+let lastTapTime = 0;
+let initialPinchScale = 1;
+let pinchStartX = 0;  // 핀치 시작 X 좌표
+let pinchStartY = 0;  // 핀치 시작 Y 좌표
+let exitButton = null;
+
+// 터치 시작 이벤트 핸들러
+mapContainer.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    isTouching = true;
+    
+    if (e.touches.length === 1) {
+        // 싱글 터치 (이동)
+        const touch = e.touches[0];
+        lastTouchX = touch.clientX;
+        lastTouchY = touch.clientY;
+        
+        // 더블 탭 확인
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTapTime;
+        
+        if (tapLength < 300 && tapLength > 0) {
+            // 더블 탭 확대
+            const touch = e.touches[0];
+            const targetScale = currentScale === mapConfig.maxScale ? 
+                mapConfig.minScale : Math.min(currentScale * 2, mapConfig.maxScale);
+            
+            smoothZoom(targetScale, touch.clientX, touch.clientY);
+        }
+        
+        lastTapTime = currentTime;
+        
+    } else if (e.touches.length === 2) {
+        // 멀티 터치 (핀치 줌)
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        
+        // 핀치 시작 지점 저장 (두 손가락의 중심점)
+        pinchStartX = (touch1.clientX + touch2.clientX) / 2;
+        pinchStartY = (touch1.clientY + touch2.clientY) / 2;
+        
+        initialTouchDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+        );
+        initialPinchScale = currentScale;
+    }
+});
+
+// 터치 이동 이벤트 핸들러
+mapContainer.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    
+    if (!isTouching) return;
+    
+    if (e.touches.length === 1) {
+        // 싱글 터치 (이동)
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - lastTouchX;
+        const deltaY = touch.clientY - lastTouchY;
+        
+        currentTranslateX += deltaX;
+        currentTranslateY += deltaY;
+        
+        lastTouchX = touch.clientX;
+        lastTouchY = touch.clientY;
+        
+        updateMapTransform();
+        
+    } else if (e.touches.length === 2) {
+        // 멀티 터치 (핀치 줌)
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        
+        // 현재 터치 포인트 간의 거리 계산
+        const currentTouchDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+        );
+        
+        // 스케일 계산
+        const scaleFactor = currentTouchDistance / initialTouchDistance;
+        const targetScale = Math.min(
+            Math.max(
+                mapConfig.minScale,
+                initialPinchScale * scaleFactor
+            ),
+            mapConfig.maxScale
+        );
+        
+        // 핀치 시작 지점을 기준으로 확대/축소
+        const rect = mapWrapper.getBoundingClientRect();
+        const mouseX = pinchStartX - rect.left;
+        const mouseY = pinchStartY - rect.top;
+        
+        // 맵 상의 마우스 위치 계산
+        const mapX = (mouseX - currentTranslateX) / currentScale;
+        const mapY = (mouseY - currentTranslateY) / currentScale;
+        
+        // 즉시 확대/축소 적용
+        currentScale = targetScale;
+        
+        // 핀치 시작 지점을 기준으로 새로운 translate 값 계산
+        currentTranslateX = mouseX - (mapX * currentScale);
+        currentTranslateY = mouseY - (mapY * currentScale);
+        
+        updateMapTransform();
+    }
+});
+
+// 터치 종료 이벤트 핸들러
+mapContainer.addEventListener('touchend', function(e) {
+    isTouching = false;
+    initialTouchDistance = 0;
+    initialPinchScale = currentScale;
+    pinchStartX = 0;
+    pinchStartY = 0;
+    
+    // 바운스 효과 적용
+    const wrapperWidth = mapWrapper.offsetWidth;
+    const wrapperHeight = mapWrapper.offsetHeight;
+    const mapWidth = 1200 * currentScale;
+    const mapHeight = 900 * currentScale;
+    
+    const minX = Math.min(0, wrapperWidth - mapWidth);
+    const minY = Math.min(0, wrapperHeight - mapHeight);
+    
+    if (currentTranslateX < minX || currentTranslateX > 0 ||
+        currentTranslateY < minY || currentTranslateY > 0) {
+        
+        mapContainer.style.transition = 'transform 0.3s ease-out';
+        currentTranslateX = Math.max(minX, Math.min(0, currentTranslateX));
+        currentTranslateY = Math.max(minY, Math.min(0, currentTranslateY));
+        updateMapTransform();
+        
+        setTimeout(() => {
+            mapContainer.style.transition = '';
+        }, 300);
+    }
+});
+
+// 터치 취소 이벤트 핸들러
+mapContainer.addEventListener('touchcancel', function() {
+    isTouching = false;
+    initialTouchDistance = 0;
+    initialPinchScale = currentScale;
+    pinchStartX = 0;
+    pinchStartY = 0;
+});
+
+// 부드러운 줌 함수
+function smoothZoom(targetScale, mouseX, mouseY) {
+    const startScale = currentScale;
+    const scaleDiff = targetScale - startScale;
+    const duration = 300;
+    
+    if (zoomAnimation) {
+        cancelAnimationFrame(zoomAnimation);
+    }
+
+    // 현재 뷰포트 상의 마우스 위치
+    const viewportX = mouseX;
+    const viewportY = mouseY;
+
+    // 현재 맵 상의 마우스 위치 계산
+    const mapX = (viewportX - currentTranslateX) / currentScale;
+    const mapY = (viewportY - currentTranslateY) / currentScale;
+
+    const startTime = performance.now();
+    
+    function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // easeOutQuad 이징 함수 사용
+        const easeProgress = 1 - (1 - progress) * (1 - progress);
+        const newScale = startScale + (scaleDiff * easeProgress);
+        
+        // 새로운 translate 값 계산
+        // 마우스 위치는 고정된 채로 확대/축소되어야 함
+        const newTranslateX = viewportX - (mapX * newScale);
+        const newTranslateY = viewportY - (mapY * newScale);
+
+        // 경계 확인
+        const mapWidth = 1200 * newScale;
+        const mapHeight = 900 * newScale;
+        const wrapperWidth = mapWrapper.offsetWidth;
+        const wrapperHeight = mapWrapper.offsetHeight;
+
+        // 맵이 화면 밖으로 너무 많이 나가지 않도록 제한
+        const minX = Math.min(0, wrapperWidth - mapWidth);
+        const minY = Math.min(0, wrapperHeight - mapHeight);
+
+        currentScale = newScale;
+        currentTranslateX = Math.max(minX, Math.min(0, newTranslateX));
+        currentTranslateY = Math.max(minY, Math.min(0, newTranslateY));
+        
+        updateMapTransform();
+        
+        if (progress < 1) {
+            zoomAnimation = requestAnimationFrame(animate);
+        }
+    }
+    
+    zoomAnimation = requestAnimationFrame(animate);
+}
+
+// 마우스 다운 이벤트 핸들러 추가
+mapContainer.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    mapContainer.style.cursor = 'grabbing';
+});
+
+// 마우스 이동 이벤트 핸들러 업데이트
+document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+    
+    currentTranslateX += deltaX;
+    currentTranslateY += deltaY;
+    
+    startX = e.clientX;
+    startY = e.clientY;
+    
+    updateMapTransform();
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+    mapContainer.style.cursor = 'grab';
+});
+
+// X키 이벤트 리스너
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'x' || e.key === 'X') {
+        if (activeInfoBox) {
+            activeInfoBox.style.display = 'none';
+            activeInfoBox = null;
+        }
+        if (searchResults.style.display === 'block') {
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+        }
+    }
+});
+
+function generateBuildingList() {
+    // 2순위 핀들만 필터링
+    const secondaryPins = pinsData.filter(pin => pin.priority === "2순위");
+    
+    // 건물별로 그룹화
+    const buildingGroups = {};
+    secondaryPins.forEach(pin => {
+        if (!buildingGroups[pin.building]) {
+            buildingGroups[pin.building] = new Set();
+        }
+        if (pin.floor) {
+            buildingGroups[pin.building].add(pin.floor);
+        }
+    });
+
+    // 건물 리스트 HTML 생성
+    const buildingContainer = document.querySelector('.building-container');
+    buildingContainer.innerHTML = ''; // 기존 내용 초기화
+
+    Object.entries(buildingGroups).forEach(([building, floors]) => {
+        const buildingSection = document.createElement('div');
+        buildingSection.className = 'building-section';
+        
+        // 건물명 헤더
+        const header = document.createElement('h3');
+        header.textContent = building;
+        buildingSection.appendChild(header);
+
+        // 층 버튼들을 담을 컨테이너
+        const floorList = document.createElement('div');
+        floorList.className = 'floor-list';
+
+        // 층 정보가 있는 경우에만 층 버튼 생성
+        if (floors.size > 0) {
+            // 층 정보를 정렬 (숫자 순)
+            const sortedFloors = Array.from(floors).sort((a, b) => {
+                const numA = parseInt(a);
+                const numB = parseInt(b);
+                return numB - numA;  // 내림차순 정렬
+            });
+
+            sortedFloors.forEach(floor => {
+                const floorButton = document.createElement('button');
+                floorButton.className = 'floor-item';
+                floorButton.textContent = floor;
+                
+                // 층 버튼 클릭 이벤트
+                floorButton.addEventListener('click', () => {
+                    // 해당 건물의 해당 층에 있는 2순위 핀만 표시
+                    pins.forEach(pinObj => {
+                        if (pinObj.pin.dataset.priority === "2순위" && 
+                            pinObj.building === building && 
+                            pinObj.floor === floor) {
+                            pinObj.pin.style.display = 'block';
+                        } else {
+                            pinObj.pin.style.display = 'none';
+                        }
+                    });
+                });
+                
+                floorList.appendChild(floorButton);
+            });
+        }
+
+        buildingSection.appendChild(floorList);
+
+        // 건물별 위치 리스트 생성
+        const locationsList = document.createElement('div');
+        locationsList.className = 'locations-list';
+        
+        // 해당 건물의 2순위 핀들 표시
+        secondaryPins.filter(pin => pin.building === building).forEach(pin => {
+            const locationItem = document.createElement('div');
+            locationItem.className = 'location-item';
+            locationItem.textContent = `${pin.floor ? pin.floor + ' - ' : ''}${pin.name || '이름 없음'}`;
+            
+            // 위치 항목 클릭 이벤트
+            locationItem.addEventListener('click', () => {
+                const pinObj = pins.find(p => 
+                    p.coordinates.x == pin.x && 
+                    p.coordinates.y == pin.y
+                );
+                if (pinObj) {
+                    // 해당 핀만 표시하고 나머지는 숨김
+                    pins.forEach(p => {
+                        p.pin.style.display = 'none';
+                    });
+                    pinObj.pin.style.display = 'block';
+                    moveToPin(pinObj.pin);
+                    showPinInfoBox(pinObj.pin, pin);
+                }
+                document.querySelector('.building-list').style.display = 'none';
+            });
+            
+            locationsList.appendChild(locationItem);
+        });
+
+        buildingSection.appendChild(locationsList);
+        buildingContainer.appendChild(buildingSection);
+    });
+}
+
+// 건물 버튼 클릭 이벤트 수정
+document.querySelector('.nav-item:nth-child(2)').addEventListener('click', function(e) {
+    e.preventDefault();
+    const buildingList = document.querySelector('.building-list');
+    if (buildingList.style.display === 'none') {
+        generateBuildingList(); // 리스트 표시 전에 동적으로 생성
+        buildingList.style.display = 'block';
+    } else {
+        buildingList.style.display = 'none';
+    }
+    
+});
+
+// 외부 클릭 시 리스트 닫기 이벤트
+document.addEventListener('click', function(e) {
+    const buildingList = document.querySelector('.building-list');
+    const navItem = document.querySelector('.nav-item:nth-child(2)');
+    
+    if (buildingList && buildingList.style.display !== 'none' &&
+        !buildingList.contains(e.target) && !navItem.contains(e.target)) {
+        buildingList.style.display = 'none';
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const popup = document.getElementById("popup");
+    const openPopup = document.getElementById("openPopup");
+    const closePopup = document.querySelector(".close");
+
+    // 팝업 열기
+    openPopup.addEventListener("click", function (event) {
+        event.preventDefault(); // 기본 링크 동작 방지
+        popup.style.display = "flex";
+    });
+
+    // 팝업 닫기 (X 버튼)
+    closePopup.addEventListener("click", function () {
+        popup.style.display = "none";
+    });
+
+    // 팝업 외부 클릭 시 닫기
+    window.addEventListener("click", function (event) {
+        if (event.target === popup) {
+            popup.style.display = "none";
+        }
+    });
+});
+
+// wheel 이벤트 핸들러 수정
+mapWrapper.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    
+    const rect = mapWrapper.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // 현재 맵의 크기 계산
+    const wrapperWidth = mapWrapper.offsetWidth;
+    const wrapperHeight = mapWrapper.offsetHeight;
+    const minScaleX = wrapperWidth / 1200;
+    const minScaleY = wrapperHeight / 900;
+    const minScale = Math.max(minScaleX, minScaleY);
+
+    const delta = -e.deltaY / Math.abs(e.deltaY); // 방향만 추출 (+1 또는 -1)
+    
+    // 축소하려고 할 때 (delta < 0) 최소 스케일에 도달했다면 더 이상 축소하지 않음
+    if (delta < 0 && currentScale <= minScale) {
+        return;
+    }
+    
+    const zoomFactor = 0.6; // 줌 속도 조절 (값이 작을수록 부드러움)
+    const targetScale = Math.min(
+        Math.max(
+            minScale,
+            currentScale * (1 + delta * zoomFactor)
+        ),
+        mapConfig.maxScale
+    );
+    
+    // 현재 스케일과 목표 스케일이 충분히 다른 경우에만 줌 실행
+    if (Math.abs(targetScale - currentScale) > 0.01) {
+        smoothZoom(targetScale, mouseX, mouseY);
+    }
+});
+
+// 클릭 이벤트로 정보창과 검색결과 닫기
+// mapWrapper.addEventListener('click', function() {
+//     if (activeInfoBox) {
+//         activeInfoBox.style.display = 'none';
+//         activeInfoBox = null;
+//     }
+//     searchResults.style.display = 'none';
+//     searchInput.value = '';
+// });
+
+// 윈도우 리사이즈 이벤트
+window.addEventListener('resize', function() {
+    updateMapTransform();
+    if (activeInfoBox && selectedPin) {
+        const pinRect = selectedPin.getBoundingClientRect();
+        activeInfoBox.style.left = `${pinRect.left}px`;
+        activeInfoBox.style.top = `${pinRect.top - 100}px`;
+    }
+});
+
+// 앱 초기화
+function initializeMap() {
+    // 모바일 여부 확인
+    const isMobile = window.innerWidth <= 768;
+    
+    // 모바일/데스크톱에 따른 초기 설정 적용
+    currentScale = isMobile ? mapConfig.mobile.initialScale : mapConfig.initialScale;
+    
+    const wrapperWidth = mapWrapper.offsetWidth;
+    const wrapperHeight = mapWrapper.offsetHeight;
+    const mapWidth = 1200 * currentScale;
+    const mapHeight = 900 * currentScale;
+    
+    if (isMobile) {
+        currentTranslateX = mapConfig.mobile.initialX;
+        currentTranslateY = mapConfig.mobile.initialY;
+    } else {
+        if (mapConfig.initialX === 0 && mapConfig.initialY === 0) {
+            currentTranslateX = (wrapperWidth - mapWidth) / 2;
+            currentTranslateY = (wrapperHeight - mapHeight) / 2;
+        } else {
+            currentTranslateX = mapConfig.initialX;
+            currentTranslateY = mapConfig.initialY;
+        }
+    }
+    
+    updateMapTransform();
+}
+
+// 필터 설정
+function setupFilters() {
+    const filters = ['building-filter', 'floor-filter', 'category-filter'];
+    filters.forEach(filterId => {
+        document.getElementById(filterId).addEventListener('change', filterPins);
+    });
+}
+
+// URL 파라미터 가져오기
+function getUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        x: params.get("x"),
+        y: params.get("y"),
+        name: params.get("name")
+    };
+}
+
+// URL에서 좌표가 있을 경우 해당 위치로 이동
+function moveToUrlCoordinates() {
+    const params = getUrlParams();
+    if (params.x && params.y) {
+        const x = parseFloat(params.x);
+        const y = parseFloat(params.y);
+        createPin(x, y, { name: params.name || "선택한 위치" }); 
+        moveToPinByCoordinates(x, y);
+        showPopup(params.name || "선택한 위치");
+    }
+}
+
+// 특정 좌표로 이동하는 함수
+function moveToPinByCoordinates(x, y) {
+    const wrapperRect = mapWrapper.getBoundingClientRect();
+    const targetX = -(x * currentScale - wrapperRect.width / 2);
+    const targetY = -(y * currentScale - wrapperRect.height / 2);
+
+    mapContainer.style.transition = 'transform 0.5s ease-out';
+    currentTranslateX = targetX;
+    currentTranslateY = targetY;
+    updateMapTransform();
+
+    setTimeout(() => {
+        mapContainer.style.transition = '';
+    }, 500);
+}
+
+// 페이지 로드 시 URL 좌표로 이동
+document.addEventListener("DOMContentLoaded", function() {
+    moveToUrlCoordinates();
+});
+
+// DOM이 로드되면 실행
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+    initializeFilterOptions();
+    setupFilters();
+    
+    // 모든 핀 생성
+    pinsData.forEach(pinData => createPin(pinData.x, pinData.y, pinData));
+    
+    // 최초 실행 시 1순위 핀만 표시
+    filterPins2();
+    
+    // 불필요한 필터 적용 버튼 제거
+    const applyButton = document.getElementById('apply-filters');
+    if (applyButton) {
+        applyButton.remove();
+    }
+});
+
+document.addEventListener('contextmenu', function(event) {
+    event.preventDefault();  // 우클릭 방지
+});
+    </script>
+</body>
+</html>
