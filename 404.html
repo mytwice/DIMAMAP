@@ -2086,7 +2086,8 @@ document.addEventListener("DOMContentLoaded", function() {
 // ✅ URL에서 장소 이름 추출 후 핀 표시 및 안내창 띄우기
 function moveToUrlLocation() {
     const pathParts = window.location.pathname.split("/"); // URL 경로 추출
-    const placeName = decodeURIComponent(pathParts[pathParts.length - 1]); // 마지막 경로(장소이름) 가져오기
+    let placeName = pathParts[pathParts.length - 1]; // 마지막 경로(장소이름) 가져오기
+    placeName = decodeURIComponent(placeName); // 한글 URL 디코딩
 
     if (!placeName || placeName === "DIMAMAP") return; // 기본 페이지는 실행 X
 
@@ -2104,8 +2105,46 @@ function moveToUrlLocation() {
             moveToPin(pinObj.pin);  // 핀 위치로 이동
             showPinInfoBox(pinObj.pin, targetPin); // 안내창 띄우기
         }
+    } else {
+        // ❌ 등록되지 않은 장소인 경우 오류 메시지 띄우기
+        showErrorPopup(`"${placeName}"에 대한 정보를 찾을 수 없습니다.`);
     }
 }
+
+// ✅ 오류 팝업 표시 함수
+function showErrorPopup(message) {
+    // 기존 팝업이 있으면 삭제
+    const existingPopup = document.getElementById("error-popup");
+    if (existingPopup) existingPopup.remove();
+
+    // 팝업 요소 생성
+    const popup = document.createElement("div");
+    popup.id = "error-popup";
+    popup.innerHTML = `
+        <div style="
+            position: fixed; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%);
+            background: white; padding: 20px; 
+            border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-align: center; z-index: 9999;">
+            <p style="margin: 0; font-size: 16px; font-weight: bold;">⚠ 오류</p>
+            <p style="margin: 10px 0;">${message}</p>
+            <button id="close-error" style="
+                background: #e155b5; color: white; 
+                border: none; padding: 8px 15px; 
+                border-radius: 5px; cursor: pointer;">닫기</button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // 닫기 버튼 이벤트 추가
+    document.getElementById("close-error").addEventListener("click", function() {
+        popup.remove();
+    });
+}
+
 
 // DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
