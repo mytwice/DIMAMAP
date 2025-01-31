@@ -2079,47 +2079,51 @@ function setupFilters() {
     });
 }
 
-function handleUrlPinParameter() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pinName = urlParams.get('이름');
+// Function to handle location lookup from URL
+function handleUrlPinLocation() {
+    // Extract the location name from the URL path
+    const path = window.location.pathname;
+    const locationName = decodeURIComponent(path.split('/').pop());
 
-    if (pinName) {
-        // 디코딩된 이름으로 핀 찾기
-        const decodedPinName = decodeURIComponent(pinName);
-        const matchedPin = pinsData.find(pin => 
-            pin.name === decodedPinName || 
-            pin.description.includes(decodedPinName)
+    // Find matching pin in pinsData
+    const matchedPin = pinsData.find(pin => 
+        pin.name.toLowerCase() === locationName.toLowerCase() || 
+        pin.building.toLowerCase() === locationName.toLowerCase()
+    );
+
+    if (matchedPin) {
+        // Find the corresponding pin object
+        const pinObj = pins.find(p => 
+            p.coordinates.x == matchedPin.x && 
+            p.coordinates.y == matchedPin.y
         );
 
-        if (matchedPin) {
-            const pinObj = pins.find(p => 
-                p.coordinates.x == matchedPin.x && 
-                p.coordinates.y == matchedPin.y
-            );
-
-            if (pinObj) {
-                // 모든 핀 숨기기
-                pins.forEach(p => {
-                    p.pin.style.display = 'none';
-                });
-
-                // 해당 핀만 표시
-                pinObj.pin.style.display = 'block';
-
-                // 핀으로 이동
-                moveToPin(pinObj.pin);
-
-                // 정보창 표시
-                showPinInfoBox(pinObj.pin, matchedPin);
-            }
-        } else {
-            // 일치하는 핀 없을 때 알림
-            alert(`"${decodedPinName}"에 대한 위치 정보를 찾을 수 없습니다.`);
+        if (pinObj) {
+            // Show only this pin
+            pins.forEach(p => {
+                p.pin.style.display = 'none';
+            });
+            pinObj.pin.style.display = 'block';
+            
+            // Move to pin and show info box
+            moveToPin(pinObj.pin);
+            showPinInfoBox(pinObj.pin, matchedPin);
         }
+    } else {
+        // Show alert if no matching location found
+        alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
 
-// DOM 로드 완료 후 기존 초기화 함수에 추가
+// Add URL location handling when DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if there's a location in the URL path
+    if (window.location.pathname.split('/').pop()) {
+        handleUrlPinLocation();
+    }
+});
+
+// DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     initializeFilterOptions();
@@ -2130,9 +2134,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 최초 실행 시 1순위 핀만 표시
     filterPins2();
-    
-    // URL 파라미터로 핀 표시 추가
-    handleUrlPinParameter();
     
     // 불필요한 필터 적용 버튼 제거
     const applyButton = document.getElementById('apply-filters');
