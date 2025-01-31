@@ -104,7 +104,7 @@
         }
 
         .search-title {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
             color: #333;
         }
@@ -126,14 +126,19 @@
         #category-filter {
             display: flex;
             flex-wrap: nowrap;  /* 한 줄로 배치 */
-            gap: 16px;
+            gap: 10px;
             width: 100%;  /* 전체 너비 사용 */
             overflow-x: auto;  /* 가로 스크롤을 추가 */
             padding-bottom: 10px;  /* 스크롤바가 보이도록 아래 여백 추가 */
         }
 
         #category-filter label {
-            box-sizing: border-box;
+            background: #e155b5;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 14px;
         }
 
         .filter-group label {
@@ -190,13 +195,15 @@
 
         /* 2순위 핀 스타일 - 원형 */
         .pin-secondary {
-            width: 2px;
-            height: 2px;
-            background-color: #E91E63;
-            border-radius: 50%;
-            border: 1px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transform: translate(-50%, -50%);
+            position: absolute; /* Ensure absolute positioning */
+            width: 2px; /* Fixed width */
+            height: 2px; /* Fixed height */
+            background-color: #E91E63; /* Pink color */
+            border-radius: 50%; /* Circular shape */
+            border: 2px solid white; /* White border */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow */
+            transform: translate(-50%, -50%); /* Center the pin */
+            z-index: 1000; /* Ensure it's above other elements */
         }
 
         /* 핀 라벨 스타일 */
@@ -296,6 +303,8 @@
         text-align: left;
         border-right: none;
         border-bottom: 1px solid #ddd;
+        text-decoration: none;
+        color: #666
     }
 
     .mobile-nav a:last-child {
@@ -575,6 +584,12 @@
         margin: 0 auto; /* 자동으로 좌우 여백 */
     }
 
+    .search-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
     .search-input {
         border: none;
         padding: 8px;
@@ -731,14 +746,14 @@ const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
 // 맵 설정
 const mapConfig = {
     initialScale: 2.6,        // 2.6에서 1.7로 변경
-    initialX: -565,           // 0에서 -70으로 변경
-    initialY: -650,
+    initialX: -747,           // 0에서 -70으로 변경
+    initialY: -726,
     minScale: 1.0,            // 2.5에서 0으로 변경
     maxScale: 9,
     zoomSpeed: 1,
     mobile: {
         initialScale: 1.2,
-        initialX: -460,
+        initialX: -480,
         initialY: -80
     }
 };
@@ -746,112 +761,256 @@ const mapConfig = {
 // 핀 데이터
 const pinsData = [
   {
-    "id": "1738295368958",
-    "x": "581.43",
-    "y": "445.43",
-    "building": "지성관",
+    "id": "1738332942695",
+    "x": "574.20",
+    "y": "139.20",
+    "building": "",
     "floor": "",
     "category": "",
     "name": "",
     "description": "",
     "address": "",
-    "priority": "1순위"
+    "priority": "없음"
   },
   {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
+    "id": "1738332945823",
+    "x": "539.20",
+    "y": "161.20",
+    "building": "",
     "floor": "",
     "category": "",
     "name": "",
     "description": "",
     "address": "",
+    "priority": "없음"
+  },
+  {
+    "id": "1738332949708",
+    "x": "581.20",
+    "y": "420.20",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "기예관",
+    "description": "",
+    "address": "",
     "priority": "1순위"
   },
   {
-    "id": "1738295371056",
-    "x": "608.43",
-    "y": "444.43",
+    "id": "1738332951394",
+    "x": "579.20",
+    "y": "443.20",
     "building": "지성관",
-    "floor": "1",
-    "category": "",
-    "name": "s",
-    "description": "",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
     "floor": "",
     "category": "",
-    "name": "ㅈㅈ",
+    "name": "지성관",
     "description": "",
     "address": "",
-    "priority": "2순위"
+    "priority": "1순위"
   },
   {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
+    "id": "1738332954413",
+    "x": "584.20",
+    "y": "391.20",
+    "building": "덕성관",
     "floor": "",
     "category": "",
-    "name": "ㅈㅈ",
+    "name": "덕성관",
     "description": "",
     "address": "",
-    "priority": "2순위"
+    "priority": "1순위"
   },
   {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
+    "id": "1738332957269",
+    "x": "545.20",
+    "y": "503.20",
+    "building": "",
     "floor": "",
     "category": "",
-    "name": "ㅈㅈ",
+    "name": "체육관",
     "description": "",
     "address": "",
-    "priority": "2순위"
+    "priority": "1순위"
   },
   {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
+    "id": "1738332961017",
+    "x": "573.20",
+    "y": "495.20",
+    "building": "",
+    "floor": "",
+    "category": "정류장",
+    "name": "운동장 정류소",
+    "description": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1738332964340",
+    "x": "634.20",
+    "y": "479.20",
+    "building": "",
     "floor": "",
     "category": "",
-    "name": "ㅈㅈ",
-    "description": "",
+    "name": "야외공연장",
+    "description": "한번도 공연하는걸못본 공연장",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1738333075127",
+    "x": "605.20",
+    "y": "388.20",
+    "building": "덕성관",
+    "floor": "4층",
+    "category": "실습실",
+    "name": "C3 스튜디오",
+    "description": "각종 생방송이 제작되는 중형스튜디오",
     "address": "",
     "priority": "2순위"
   },
   {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
+    "id": "1738333078150",
+    "x": "567.20",
+    "y": "394.20",
+    "building": "덕성관",
+    "floor": "2층",
+    "category": "강의실",
+    "name": "40201 강의실",
+    "description": "교실형 빔프로젝트 강의실",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738333085774",
+    "x": "609.20",
+    "y": "414.20",
     "building": "기예관",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "HD 스튜디오",
+    "description": "거대한 스튜디오",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738333087372",
+    "x": "617.20",
+    "y": "418.20",
+    "building": "기예관",
+    "floor": "4층",
+    "category": "실습실",
+    "name": "개방편집실",
+    "description": "들어가면 못 빠져나올지도",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738333095196",
+    "x": "600.20",
+    "y": "420.20",
+    "building": "",
     "floor": "",
     "category": "",
-    "name": "ㅈㅈ",
+    "name": "",
     "description": "",
     "address": "",
-    "priority": "2순위"
+    "priority": "없음"
   },
   {
-    "id": "1738295371874",
-    "x": "612.43",
-    "y": "420.43",
+    "id": "1738333100871",
+    "x": "561.20",
+    "y": "440.20",
     "building": "지성관",
-    "floor": "3층",
-    "category": "",
-    "name": "sd",
-    "description": "",
+    "floor": "4층",
+    "category": "교수연구실",
+    "name": "연구실",
+    "description": "가면 못 빠져나올지도",
     "address": "",
     "priority": "2순위"
+  },
+  {
+    "id": "1738333107596",
+    "x": "557.20",
+    "y": "467.20",
+    "building": "",
+    "floor": "",
+    "category": "도서관부속시설",
+    "name": "도서관",
+    "description": "암튼 전문대 순위권 도서관",
+    "address": "https://lib.dima.ac.kr/",
+    "priority": "3순위"
+  },
+  {
+    "id": "1738333116090",
+    "x": "587.20",
+    "y": "141.20",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "",
+    "description": "",
+    "address": "",
+    "priority": "없음"
+  },
+  {
+    "id": "1738333131234",
+    "x": "544.20",
+    "y": "151.20",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "",
+    "description": "",
+    "address": "",
+    "priority": "없음"
+  },
+  {
+    "id": "1738333143140",
+    "x": "607.20",
+    "y": "446.20",
+    "building": "지성관",
+    "floor": "2층",
+    "category": "공연시설",
+    "name": "콘서트홀",
+    "description": "소형규모의 공연장",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738333146582",
+    "x": "616.20",
+    "y": "461.20",
+    "building": "지성관",
+    "floor": "5층",
+    "category": "행정시설",
+    "name": "학생회실",
+    "description": "들어가보고 싶다",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1738333412722",
+    "x": "605.20",
+    "y": "512.20",
+    "building": "",
+    "floor": "",
+    "category": "체육시설",
+    "name": "운동장",
+    "description": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1738333439589",
+    "x": "605.20",
+    "y": "454.20",
+    "building": "",
+    "floor": "실외",
+    "category": "편의시설",
+    "name": "한울마당",
+    "description": "모두의 쉼터 한울마당!",
+    "address": "",
+    "priority": "3순위"
   }
 ]
 
@@ -1037,6 +1196,11 @@ function createPin(x, y, details = {}) {
     } else if (details.priority === "2순위") {
         pin.classList.add('pin-secondary');
     }
+
+        // 우선순위에 따라 추가 클래스 적용
+        if (details.priority === "3순위") {
+        pin.classList.add('pin-primary');
+    }
     
     pin.style.left = `${x}px`;
     pin.style.top = `${y}px`;
@@ -1128,7 +1292,7 @@ function createPin(x, y, details = {}) {
 function showPriorityPins(buildingName) {
     // 모든 1순위 핀 숨기기
     pins.forEach(pinObj => {
-        if (pinObj.pin.dataset.priority === "1순위") {
+        if (pinObj.pin.dataset.priority === "1순위", "3순위") {
             pinObj.pin.style.display = 'none'; // 모든 1순위 핀을 숨김
         }
     });
@@ -1145,7 +1309,6 @@ function showPriorityPins(buildingName) {
 
 // 2순위 핀이 보일 때 "건물 나가기" 버튼과 층 버튼들을 표시하는 함수
 function showExitButton() {
-    // 건물 나가기 버튼 생성
     if (exitButton === null) {
         exitButton = document.createElement('div');
         exitButton.className = 'exit-button-container';
@@ -1178,16 +1341,22 @@ function showExitButton() {
             }
         });
         
-        // 층 버튼들을 담을 컨테이너
+        // 해당 건물의 층들 추출
+        const currentBuilding = document.querySelector('.pin[data-priority="2순위"]:not([style*="display: none"])').dataset.building;
+        const buildingFloors = [...new Set(
+            pinsData
+                .filter(pin => pin.building === currentBuilding && pin.priority === "2순위" && pin.floor)
+                .map(pin => pin.floor)
+        )];
+
+        // 층 버튼 컨테이너
         const floorButtonsContainer = document.createElement('div');
-        floorButtonsContainer.className = 'floor-buttons';
         floorButtonsContainer.style.display = 'flex';
-        floorButtonsContainer.style.flexDirection = 'column';
-        floorButtonsContainer.style.gap = '5px';
+        floorButtonsContainer.style.flexDirection = 'column'; // 1열로 변경
+        floorButtonsContainer.style.gap = '10px'; // 버튼 간 간격 추가
         
-        // 층 버튼 생성 (1F ~ 5F)
-        const floors = ['5층', '4층', '3층', '2층', '1층'];
-        floors.forEach(floor => {
+        // 층 버튼 생성
+        buildingFloors.sort().reverse().forEach(floor => {
             const floorButton = document.createElement('button');
             floorButton.className = 'floor-button';
             floorButton.innerText = floor;
@@ -1199,23 +1368,23 @@ function showExitButton() {
             floorButton.style.fontSize = '14px';
             floorButton.style.border = 'none';
             floorButton.style.cursor = 'pointer';
+
             
-            // 호버 효과
-            floorButton.addEventListener('mouseover', () => {
-                floorButton.style.background = '#666666';
-            });
-            floorButton.addEventListener('mouseout', () => {
-                floorButton.style.background = '#4a4a4a';
-            });
-            
-            // 클릭 이벤트
             floorButton.addEventListener('click', () => {
-                highlightSelectedFloor(floor);
+                // 해당 건물의 해당 층 핀만 표시
+                pins.forEach(pinObj => {
+                    const isTargetPin = 
+                        pinObj.pin.dataset.priority === "2순위" && 
+                        pinObj.building === currentBuilding && 
+                        pinObj.floor === floor;
+                    
+                    pinObj.pin.style.display = isTargetPin ? 'block' : 'none';
+                });
             });
             
             floorButtonsContainer.appendChild(floorButton);
         });
-        
+
         exitButton.appendChild(exitButtonElement);
         exitButton.appendChild(floorButtonsContainer);
         document.body.appendChild(exitButton);
@@ -1673,6 +1842,19 @@ function generateBuildingList() {
     const buildingContainer = document.querySelector('.building-container');
     buildingContainer.innerHTML = ''; // 기존 내용 초기화
 
+    // X 버튼 추가
+    const closeButton = document.createElement('div');
+    closeButton.innerHTML = '&times;';
+    closeButton.style.position = 'absolute';
+    closeButton.style.top = '10px';
+    closeButton.style.right = '10px';
+    closeButton.style.fontSize = '24px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.addEventListener('click', () => {
+        document.querySelector('.building-list').style.display = 'none';
+    });
+    buildingContainer.appendChild(closeButton);
+
     Object.entries(buildingGroups).forEach(([building, floors]) => {
         const buildingSection = document.createElement('div');
         buildingSection.className = 'building-section';
@@ -1745,7 +1927,6 @@ function generateBuildingList() {
                     moveToPin(pinObj.pin);
                     showPinInfoBox(pinObj.pin, pin);
                 }
-                document.querySelector('.building-list').style.display = 'none';
             });
             
             locationsList.appendChild(locationItem);
@@ -1898,47 +2079,43 @@ function setupFilters() {
     });
 }
 
-// URL 파라미터 가져오기
-function getUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    return {
-        x: params.get("x"),
-        y: params.get("y"),
-        name: params.get("name")
-    };
-}
+function handleUrlPinLocation() {
+    const path = window.location.pathname;
+    const locationName = decodeURIComponent(path.split('/').pop());
 
-// URL에서 좌표가 있을 경우 해당 위치로 이동
-function moveToUrlCoordinates() {
-    const params = getUrlParams();
-    if (params.x && params.y) {
-        const x = parseFloat(params.x);
-        const y = parseFloat(params.y);
-        createPin(x, y, { name: params.name || "선택한 위치" }); 
-        moveToPinByCoordinates(x, y);
-        showPopup(params.name || "선택한 위치");
+    const matchedPin = pinsData.find(pin => 
+        pin.name.toLowerCase() === locationName.toLowerCase() || 
+        pin.building.toLowerCase() === locationName.toLowerCase() ||
+        pin.name.toLowerCase().includes(locationName.toLowerCase()) ||
+        pin.building.toLowerCase().includes(locationName.toLowerCase())
+    );
+
+    if (matchedPin) {
+        const pinObj = pins.find(p => 
+            p.coordinates.x == matchedPin.x && 
+            p.coordinates.y == matchedPin.y
+        );
+
+        if (pinObj) {
+            pins.forEach(p => {
+                p.pin.style.display = 'block';
+            });
+            
+            moveToPin(pinObj.pin);
+            showPinInfoBox(pinObj.pin, matchedPin);
+        }
+    } else {
+        alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
 
-// 특정 좌표로 이동하는 함수
-function moveToPinByCoordinates(x, y) {
-    const wrapperRect = mapWrapper.getBoundingClientRect();
-    const targetX = -(x * currentScale - wrapperRect.width / 2);
-    const targetY = -(y * currentScale - wrapperRect.height / 2);
-
-    mapContainer.style.transition = 'transform 0.5s ease-out';
-    currentTranslateX = targetX;
-    currentTranslateY = targetY;
-    updateMapTransform();
-
-    setTimeout(() => {
-        mapContainer.style.transition = '';
-    }, 500);
-}
-
-// 페이지 로드 시 URL 좌표로 이동
-document.addEventListener("DOMContentLoaded", function() {
-    moveToUrlCoordinates();
+document.addEventListener('DOMContentLoaded', function() {
+    const pathParts = window.location.pathname.split('/');
+    const locationName = pathParts[pathParts.length - 1];
+    
+    if (locationName && locationName !== 'DIMAMAP') {
+        setTimeout(handleUrlPinLocation, 500);
+    }
 });
 
 // DOM이 로드되면 실행
