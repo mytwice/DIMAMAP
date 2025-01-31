@@ -1898,48 +1898,62 @@ function setupFilters() {
     });
 }
 
-// URL 파라미터 가져오기
-function getUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    return {
-        x: params.get("x"),
-        y: params.get("y"),
-        name: params.get("name")
-    };
+// URL에서 마지막 경로 값(건물명)을 추출
+function getLocationFromUrl() {
+    const pathSegments = window.location.pathname.split("/");
+    return decodeURIComponent(pathSegments[pathSegments.length - 1]); // URL 디코딩
 }
 
-// URL에서 좌표가 있을 경우 해당 위치로 이동
-function moveToUrlCoordinates() {
-    const params = getUrlParams();
-    if (params.x && params.y) {
-        const x = parseFloat(params.x);
-        const y = parseFloat(params.y);
-        createPin(x, y, { name: params.name || "선택한 위치" }); 
-        moveToPinByCoordinates(x, y);
-        showPopup(params.name || "선택한 위치");
+// 건물 이름으로 핀 찾기
+function findPinByName(name) {
+    return pinsData.find(pin => pin.name === name || pin.building === name);
+}
+
+// 페이지 로드 시 실행
+document.addEventListener("DOMContentLoaded", function () {
+    const locationName = getLocationFromUrl();
+    
+    if (locationName && locationName !== "index.html") { // index.html 무시
+        const pin = findPinByName(locationName);
+
+        if (pin) {
+            // 존재하는 위치일 경우
+            createPin(pin.x, pin.y, { name: pin.name || pin.building });
+            moveToPinByCoordinates(parseFloat(pin.x), parseFloat(pin.y));
+            showPopup(`${pin.name || pin.building} 위치`);
+        } else {
+            // 위치가 없을 경우
+            showPopup("해당 위치가 존재하지 않습니다.");
+        }
     }
-}
-
-// 특정 좌표로 이동하는 함수
-function moveToPinByCoordinates(x, y) {
-    const wrapperRect = mapWrapper.getBoundingClientRect();
-    const targetX = -(x * currentScale - wrapperRect.width / 2);
-    const targetY = -(y * currentScale - wrapperRect.height / 2);
-
-    mapContainer.style.transition = 'transform 0.5s ease-out';
-    currentTranslateX = targetX;
-    currentTranslateY = targetY;
-    updateMapTransform();
-
-    setTimeout(() => {
-        mapContainer.style.transition = '';
-    }, 500);
-}
-
-// 페이지 로드 시 URL 좌표로 이동
-document.addEventListener("DOMContentLoaded", function() {
-    moveToUrlCoordinates();
 });
+
+// 팝업 표시 함수
+function showPopup(message) {
+    const popup = document.createElement("div");
+    popup.className = "popup";
+    popup.innerHTML = `
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2>알림</h2>
+            <p>${message}</p>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // 닫기 버튼 기능 추가
+    popup.querySelector(".close").addEventListener("click", function () {
+        document.body.removeChild(popup);
+    });
+
+    // 배경 클릭 시 닫기
+    popup.addEventListener("click", function (event) {
+        if (event.target === popup) {
+            document.body.removeChild(popup);
+        }
+    });
+}
 
 // DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
