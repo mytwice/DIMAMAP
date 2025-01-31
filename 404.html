@@ -2079,16 +2079,17 @@ function setupFilters() {
     });
 }
 
-// Function to handle location lookup from URL
 function handleUrlPinLocation() {
     // Extract the location name from the URL path
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
 
-    // Find matching pin in pinsData
+    // Find matching pin in pinsData (more flexible matching)
     const matchedPin = pinsData.find(pin => 
         pin.name.toLowerCase() === locationName.toLowerCase() || 
-        pin.building.toLowerCase() === locationName.toLowerCase()
+        pin.building.toLowerCase() === locationName.toLowerCase() ||
+        pin.name.toLowerCase().includes(locationName.toLowerCase()) ||
+        pin.building.toLowerCase().includes(locationName.toLowerCase())
     );
 
     if (matchedPin) {
@@ -2099,15 +2100,17 @@ function handleUrlPinLocation() {
         );
 
         if (pinObj) {
-            // Show only this pin
+            // Force show all pins for visibility
             pins.forEach(p => {
-                p.pin.style.display = 'none';
+                p.pin.style.display = 'block';
             });
-            pinObj.pin.style.display = 'block';
             
             // Move to pin and show info box
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
+
+            // Highlight the specific pin
+            pinObj.pin.classList.add('highlighted-pin');
         }
     } else {
         // Show alert if no matching location found
@@ -2115,13 +2118,28 @@ function handleUrlPinLocation() {
     }
 }
 
-// Add URL location handling when DOM is fully loaded
+// Modify existing code to handle URL location
 document.addEventListener('DOMContentLoaded', function() {
     // Check if there's a location in the URL path
-    if (window.location.pathname.split('/').pop()) {
-        handleUrlPinLocation();
+    const pathParts = window.location.pathname.split('/');
+    const locationName = pathParts[pathParts.length - 1];
+    
+    if (locationName && locationName !== 'DIMAMAP') {
+        // Slight delay to ensure map is fully initialized
+        setTimeout(handleUrlPinLocation, 500);
     }
 });
+
+// Add CSS for highlighted pin
+const style = document.createElement('style');
+style.textContent = `
+    .highlighted-pin {
+        transform: scale(1.5);
+        z-index: 1000;
+        border: 3px solid red;
+    }
+`;
+document.head.appendChild(style);
 
 // DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
