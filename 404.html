@@ -746,14 +746,14 @@ const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
 // 맵 설정
 const mapConfig = {
     initialScale: 2.6,        // 2.6에서 1.7로 변경
-    initialX: -565,           // 0에서 -70으로 변경
-    initialY: -650,
+    initialX: -747,           // 0에서 -70으로 변경
+    initialY: -726,
     minScale: 1.0,            // 2.5에서 0으로 변경
     maxScale: 9,
     zoomSpeed: 1,
     mobile: {
         initialScale: 1.2,
-        initialX: -460,
+        initialX: -480,
         initialY: -80
     }
 };
@@ -2080,11 +2080,9 @@ function setupFilters() {
 }
 
 function handleUrlPinLocation() {
-    // Extract the location name from the URL path
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
 
-    // Find matching pin in pinsData (more flexible matching)
     const matchedPin = pinsData.find(pin => 
         pin.name.toLowerCase() === locationName.toLowerCase() || 
         pin.building.toLowerCase() === locationName.toLowerCase() ||
@@ -2093,52 +2091,32 @@ function handleUrlPinLocation() {
     );
 
     if (matchedPin) {
-        // Find the corresponding pin object
         const pinObj = pins.find(p => 
             p.coordinates.x == matchedPin.x && 
             p.coordinates.y == matchedPin.y
         );
 
         if (pinObj) {
-            // Force show all pins for visibility
             pins.forEach(p => {
                 p.pin.style.display = 'block';
             });
             
-            // Move to pin and show info box
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
-
-            // Highlight the specific pin
-            pinObj.pin.classList.add('highlighted-pin');
         }
     } else {
-        // Show alert if no matching location found
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
 
-// Modify existing code to handle URL location
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if there's a location in the URL path
     const pathParts = window.location.pathname.split('/');
     const locationName = pathParts[pathParts.length - 1];
     
     if (locationName && locationName !== 'DIMAMAP') {
-        // Slight delay to ensure map is fully initialized
         setTimeout(handleUrlPinLocation, 500);
     }
 });
-
-// Add CSS for highlighted pin
-const style = document.createElement('style');
-style.textContent = `
-    .highlighted-pin {
-        z-index: 1000;
-        border: 3px solid red;
-    }
-`;
-document.head.appendChild(style);
 
 // DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
