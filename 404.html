@@ -2079,74 +2079,47 @@ function setupFilters() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    moveToUrlLocation(); // URL에서 장소 가져오기
-});
+function handleUrlPinParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pinName = urlParams.get('이름');
 
-// ✅ URL에서 장소 이름 추출 후 핀 표시 및 안내창 띄우기
-function moveToUrlLocation() {
-    const pathParts = window.location.pathname.split("/"); // URL 경로 추출
-    let placeName = pathParts[pathParts.length - 1]; // 마지막 경로(장소이름) 가져오기
-    placeName = decodeURIComponent(placeName); // 한글 URL 디코딩
+    if (pinName) {
+        // 디코딩된 이름으로 핀 찾기
+        const decodedPinName = decodeURIComponent(pinName);
+        const matchedPin = pinsData.find(pin => 
+            pin.name === decodedPinName || 
+            pin.description.includes(decodedPinName)
+        );
 
-    if (!placeName || placeName === "DIMAMAP") return; // 기본 페이지는 실행 X
+        if (matchedPin) {
+            const pinObj = pins.find(p => 
+                p.coordinates.x == matchedPin.x && 
+                p.coordinates.y == matchedPin.y
+            );
 
-    // 🔍 장소 이름과 일치하는 핀 찾기
-    const targetPin = pinsData.find(pin => pin.name === placeName);
+            if (pinObj) {
+                // 모든 핀 숨기기
+                pins.forEach(p => {
+                    p.pin.style.display = 'none';
+                });
 
-    if (targetPin) {
-        // 모든 핀 숨기기
-        pins.forEach(pinObj => pinObj.pin.style.display = 'none');
+                // 해당 핀만 표시
+                pinObj.pin.style.display = 'block';
 
-        // 해당 핀 표시
-        const pinObj = pins.find(p => p.coordinates.x == targetPin.x && p.coordinates.y == targetPin.y);
-        if (pinObj) {
-            pinObj.pin.style.display = 'block';
-            moveToPin(pinObj.pin);  // 핀 위치로 이동
-            showPinInfoBox(pinObj.pin, targetPin); // 안내창 띄우기
+                // 핀으로 이동
+                moveToPin(pinObj.pin);
+
+                // 정보창 표시
+                showPinInfoBox(pinObj.pin, matchedPin);
+            }
+        } else {
+            // 일치하는 핀 없을 때 알림
+            alert(`"${decodedPinName}"에 대한 위치 정보를 찾을 수 없습니다.`);
         }
-    } else {
-        // ❌ 등록되지 않은 장소인 경우 오류 메시지 띄우기
-        showErrorPopup(`"${placeName}"에 대한 정보를 찾을 수 없습니다.`);
     }
 }
 
-// ✅ 오류 팝업 표시 함수
-function showErrorPopup(message) {
-    // 기존 팝업이 있으면 삭제
-    const existingPopup = document.getElementById("error-popup");
-    if (existingPopup) existingPopup.remove();
-
-    // 팝업 요소 생성
-    const popup = document.createElement("div");
-    popup.id = "error-popup";
-    popup.innerHTML = `
-        <div style="
-            position: fixed; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%);
-            background: white; padding: 20px; 
-            border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            text-align: center; z-index: 9999;">
-            <p style="margin: 0; font-size: 16px; font-weight: bold;">⚠ 오류</p>
-            <p style="margin: 10px 0;">${message}</p>
-            <button id="close-error" style="
-                background: #e155b5; color: white; 
-                border: none; padding: 8px 15px; 
-                border-radius: 5px; cursor: pointer;">닫기</button>
-        </div>
-    `;
-
-    document.body.appendChild(popup);
-
-    // 닫기 버튼 이벤트 추가
-    document.getElementById("close-error").addEventListener("click", function() {
-        popup.remove();
-    });
-}
-
-
-// DOM이 로드되면 실행
+// DOM 로드 완료 후 기존 초기화 함수에 추가
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     initializeFilterOptions();
@@ -2157,6 +2130,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 최초 실행 시 1순위 핀만 표시
     filterPins2();
+    
+    // URL 파라미터로 핀 표시 추가
+    handleUrlPinParameter();
     
     // 불필요한 필터 적용 버튼 제거
     const applyButton = document.getElementById('apply-filters');
