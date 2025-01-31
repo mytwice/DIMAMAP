@@ -792,66 +792,6 @@ const pinsData = [
     "description": "",
     "address": "",
     "priority": "2순위"
-  },
-  {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
-    "floor": "",
-    "category": "",
-    "name": "ㅈㅈ",
-    "description": "",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
-    "floor": "",
-    "category": "",
-    "name": "ㅈㅈ",
-    "description": "",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
-    "floor": "",
-    "category": "",
-    "name": "ㅈㅈ",
-    "description": "",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738295369774",
-    "x": "580.43",
-    "y": "419.43",
-    "building": "기예관",
-    "floor": "",
-    "category": "",
-    "name": "ㅈㅈ",
-    "description": "",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738295371874",
-    "x": "612.43",
-    "y": "420.43",
-    "building": "지성관",
-    "floor": "3층",
-    "category": "",
-    "name": "sd",
-    "description": "",
-    "address": "",
-    "priority": "2순위"
   }
 ]
 
@@ -1898,62 +1838,29 @@ function setupFilters() {
     });
 }
 
-// URL에서 마지막 경로 값(건물명)을 추출
-function getLocationFromUrl() {
-    const pathSegments = window.location.pathname.split("/");
-    return decodeURIComponent(pathSegments[pathSegments.length - 1]); // URL 디코딩
-}
-
-// 건물 이름으로 핀 찾기
-function findPinByName(name) {
-    return pinsData.find(pin => pin.name === name || pin.building === name);
-}
-
-// 페이지 로드 시 실행
 document.addEventListener("DOMContentLoaded", function () {
-    const locationName = getLocationFromUrl();
+    // URL에서 위치 이름 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    const locationName = decodeURIComponent(urlParams.get("name"));
     
-    if (locationName && locationName !== "index.html") { // index.html 무시
-        const pin = findPinByName(locationName);
-
-        if (pin) {
-            // 존재하는 위치일 경우
-            createPin(pin.x, pin.y, { name: pin.name || pin.building });
-            moveToPinByCoordinates(parseFloat(pin.x), parseFloat(pin.y));
-            showPopup(`${pin.name || pin.building} 위치`);
+    if (locationName) {
+        // 핀 데이터에서 해당 위치 찾기
+        const matchingPin = pinsData.find(pin => pin.name === locationName);
+        
+        if (matchingPin) {
+            // 존재하는 위치: 지도 이동 및 핀 표시
+            const pinObj = pins.find(p => p.coordinates.x == matchingPin.x && p.coordinates.y == matchingPin.y);
+            if (pinObj) {
+                pinObj.pin.style.display = 'block';
+                moveToPin(pinObj.pin);
+                showPinInfoBox(pinObj.pin, matchingPin);
+            }
         } else {
-            // 위치가 없을 경우
-            showPopup("해당 위치가 존재하지 않습니다.");
+            // 존재하지 않는 위치: 알림창 표시
+            alert("해당 위치가 존재하지 않습니다.");
         }
     }
 });
-
-// 팝업 표시 함수
-function showPopup(message) {
-    const popup = document.createElement("div");
-    popup.className = "popup";
-    popup.innerHTML = `
-        <div class="popup-content">
-            <span class="close">&times;</span>
-            <h2>알림</h2>
-            <p>${message}</p>
-        </div>
-    `;
-
-    document.body.appendChild(popup);
-
-    // 닫기 버튼 기능 추가
-    popup.querySelector(".close").addEventListener("click", function () {
-        document.body.removeChild(popup);
-    });
-
-    // 배경 클릭 시 닫기
-    popup.addEventListener("click", function (event) {
-        if (event.target === popup) {
-            document.body.removeChild(popup);
-        }
-    });
-}
 
 // DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
