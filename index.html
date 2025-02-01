@@ -637,6 +637,16 @@
     }
 }
 
+.pin-info-box {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 54%; /* 모바일 화면에서의 너비 */
+        max-width: 300px;
+        z-index: 1002; /* 다른 요소들보다 위에 표시 */
+    }
+
     @media (max-width: 480px) {
         /* 작은 화면에서 라벨 크기 및 입력 크기 조정 */
         .search-input {
@@ -746,8 +756,8 @@ const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
 // 맵 설정
 const mapConfig = {
     initialScale: 2.6,        // 2.6에서 1.7로 변경
-    initialX: -747,           // 0에서 -70으로 변경
-    initialY: -726,
+    initialX: -590,           // 0에서 -70으로 변경
+    initialY: -700,
     minScale: 1.0,            // 2.5에서 0으로 변경
     maxScale: 9,
     zoomSpeed: 1,
@@ -1116,6 +1126,12 @@ function filterPinsBySearch() {
             pinObj.pin.style.display = 'none'; // 일치하지 않으면 숨김
         }
     });
+    // 검색어가 없을 때
+    if (searchTerm.length === 0) {
+        searchResults.style.display = 'none';
+        filterPins2(); // 1순위와 3순위 핀만 표시
+        return;
+    }
 }
 
 // 검색창에 입력될 때마다 필터링 적용
@@ -1199,7 +1215,7 @@ function createPin(x, y, details = {}) {
 
         // 우선순위에 따라 추가 클래스 적용
         if (details.priority === "3순위") {
-        pin.classList.add('pin-primary');
+        pin.classList.add('pin-secondary');
     }
     
     pin.style.left = `${x}px`;
@@ -1332,30 +1348,46 @@ function showExitButton() {
         exitButtonElement.style.fontSize = '14px';
         exitButtonElement.style.border = 'none';
         exitButtonElement.style.cursor = 'pointer';
+        exitButtonElement.style.marginBottom = '10px'; // 원하는 여백 값으로 조정
         
         exitButtonElement.addEventListener('click', function() {
             hidePriorityPins();
             hideExitButton();
+            filterPins2()
             if (activeInfoBox) {
                 activeInfoBox.style.display = 'none';
             }
         });
+
+        // 층 버튼 컨테이너 생성
+        const floorButtonsContainer = document.createElement('div');
+        floorButtonsContainer.style.display = 'flex';
+        floorButtonsContainer.style.flexDirection = 'column';
+        floorButtonsContainer.style.gap = '10px';
+        floorButtonsContainer.className = 'floor-buttons-container'; // Add class for easier reference
+
+        exitButton.appendChild(exitButtonElement);
+        exitButton.appendChild(floorButtonsContainer);
+        document.body.appendChild(exitButton);
+    }
+
+    // 현재 보이는 2순위 핀 중 하나를 찾아서 해당 건물 정보 가져오기
+    const visibleSecondaryPin = document.querySelector('.pin[data-priority="2순위"]:not([style*="display: none"])');
+    if (visibleSecondaryPin) {
+        const currentBuilding = visibleSecondaryPin.dataset.building;
         
         // 해당 건물의 층들 추출
-        const currentBuilding = document.querySelector('.pin[data-priority="2순위"]:not([style*="display: none"])').dataset.building;
         const buildingFloors = [...new Set(
             pinsData
                 .filter(pin => pin.building === currentBuilding && pin.priority === "2순위" && pin.floor)
                 .map(pin => pin.floor)
         )];
 
-        // 층 버튼 컨테이너
-        const floorButtonsContainer = document.createElement('div');
-        floorButtonsContainer.style.display = 'flex';
-        floorButtonsContainer.style.flexDirection = 'column'; // 1열로 변경
-        floorButtonsContainer.style.gap = '10px'; // 버튼 간 간격 추가
-        
-        // 층 버튼 생성
+        // 기존 층 버튼들 제거
+        const floorButtonsContainer = exitButton.querySelector('.floor-buttons-container');
+        floorButtonsContainer.innerHTML = '';
+
+        // 새로운 층 버튼들 생성
         buildingFloors.sort().reverse().forEach(floor => {
             const floorButton = document.createElement('button');
             floorButton.className = 'floor-button';
@@ -1369,7 +1401,6 @@ function showExitButton() {
             floorButton.style.border = 'none';
             floorButton.style.cursor = 'pointer';
 
-            
             floorButton.addEventListener('click', () => {
                 // 해당 건물의 해당 층 핀만 표시
                 pins.forEach(pinObj => {
@@ -1384,13 +1415,9 @@ function showExitButton() {
             
             floorButtonsContainer.appendChild(floorButton);
         });
-
-        exitButton.appendChild(exitButtonElement);
-        exitButton.appendChild(floorButtonsContainer);
-        document.body.appendChild(exitButton);
-    } else {
-        exitButton.style.display = 'block';
     }
+
+    exitButton.style.display = 'block';
 }
 
 // 선택된 층의 핀만 표시하는 함수
@@ -1445,7 +1472,21 @@ function showPinInfoBox(pin, pinData) {
     const infoBox = document.createElement('div');
     infoBox.className = 'pin-info-box';
     
-    infoBox.style.left = `${pinRect.left}px`;
+    // 모바일 여부 확인
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        // 모바일에서는 화면 중앙에 표시
+        infoBox.style.left = '50%';
+        infoBox.style.top = '50%';
+        infoBox.style.transform = 'translate(-50%, -50%)';
+    } else {
+        // 데스크톱에서는 기존 위치 유지
+        infoBox.style.left = `${pinRect.left + 100}px`;
+        infoBox.style.top = `${pinRect.top - 100}px`;
+    }
+    
+    infoBox.style.left = `${pinRect.left + 100}px`;
     infoBox.style.top = `${pinRect.top - 100}px`;
 
     const closeBtn = document.createElement('span');
@@ -1852,6 +1893,10 @@ function generateBuildingList() {
     closeButton.style.cursor = 'pointer';
     closeButton.addEventListener('click', () => {
         document.querySelector('.building-list').style.display = 'none';
+        filterPins2()
+        if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
     });
     buildingContainer.appendChild(closeButton);
 
@@ -1958,6 +2003,10 @@ document.addEventListener('click', function(e) {
     if (buildingList && buildingList.style.display !== 'none' &&
         !buildingList.contains(e.target) && !navItem.contains(e.target)) {
         buildingList.style.display = 'none';
+        filterPins2()
+        if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
     }
 });
 
