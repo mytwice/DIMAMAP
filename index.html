@@ -1258,6 +1258,9 @@ function createPin(x, y, details = {}) {
         if (details.priority === "1순위") {
             showPriorityPins(details.building); // 같은 건물의 2순위 핀을 표시
             showExitButton(); // Exit button appears when 2순위 pins are shown
+            if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
         } else {
             // 2순위 핀만 안내창을 표시
             showPinInfoBox(pin, details);
@@ -1886,11 +1889,16 @@ function generateBuildingList() {
     // X 버튼 추가
     const closeButton = document.createElement('div');
     closeButton.innerHTML = '&times;';
-    closeButton.style.position = 'absolute';
-    closeButton.style.top = '10px';
-    closeButton.style.right = '10px';
-    closeButton.style.fontSize = '24px';
-    closeButton.style.cursor = 'pointer';
+    closeButton.style.cssText = `
+    position: sticky;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    float: right;
+    padding: 5px 10px;
+    z-index: 1000;
+`;
     closeButton.addEventListener('click', () => {
         document.querySelector('.building-list').style.display = 'none';
         filterPins2()
@@ -1899,7 +1907,7 @@ function generateBuildingList() {
             }
     });
     buildingContainer.appendChild(closeButton);
-
+    
     Object.entries(buildingGroups).forEach(([building, floors]) => {
         const buildingSection = document.createElement('div');
         buildingSection.className = 'building-section';
@@ -1935,6 +1943,9 @@ function generateBuildingList() {
                             pinObj.building === building && 
                             pinObj.floor === floor) {
                             pinObj.pin.style.display = 'block';
+                            if (activeInfoBox) {
+                                activeInfoBox.style.display = 'none';
+                            }
                         } else {
                             pinObj.pin.style.display = 'none';
                         }
