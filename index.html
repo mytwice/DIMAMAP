@@ -196,11 +196,11 @@
         /* 2순위 핀 스타일 - 원형 */
         .pin-secondary {
             position: absolute; /* Ensure absolute positioning */
-            width: 2px; /* Fixed width */
-            height: 2px; /* Fixed height */
+            width: 1px; /* Fixed width */
+            height: 1px; /* Fixed height */
             background-color: #E91E63; /* Pink color */
             border-radius: 50%; /* Circular shape */
-            border: 2px solid white; /* White border */
+            border: 1px solid white; /* White border */
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow */
             transform: translate(-50%, -50%); /* Center the pin */
             z-index: 1000; /* Ensure it's above other elements */
@@ -213,7 +213,22 @@
             color: white;
             padding: 5px 10px;
             font-size: 7px;
-            transform: translate(59%, 10%);
+            transform: translate(77%, 20%);
+            border-radius: 5px;
+            white-space: nowrap;
+            text-align: center;
+            display: none;
+            z-index: 1001;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .pin-label2 {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            font-size: 7px;
+            transform: translate(20%, -46%);
             border-radius: 5px;
             white-space: nowrap;
             text-align: center;
@@ -222,7 +237,6 @@
             transition: all 0.2s ease-in-out;
         }
         
-
         .pin-info-box {
             position: fixed;
             background: white;
@@ -727,7 +741,8 @@
     <div class="popup-content">
         <span class="close">&times;</span>
         <h2>제보/정보</h2>
-        <p>I DIMA 프로젝트</p>
+        <p style="word-break: keep-all;">잘못된 정보나 추가할 사항이 있을 경우에 언제든 연락주세요!</p>
+        <p>제작 : I DIMA 프로젝트</p>
         <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
     </div>
 </div>
@@ -756,32 +771,20 @@ const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
 // 맵 설정
 const mapConfig = {
     initialScale: 2.6,        // 2.6에서 1.7로 변경
-    initialX: -590,           // 0에서 -70으로 변경
-    initialY: -700,
+    initialX: -550,           // 0에서 -70으로 변경
+    initialY: -630,
     minScale: 1.0,            // 2.5에서 0으로 변경
     maxScale: 9,
     zoomSpeed: 1,
     mobile: {
         initialScale: 1.2,
-        initialX: -480,
-        initialY: -80
+        initialX: -460,
+        initialY: -10
     }
 };
 
 // 핀 데이터
 const pinsData = [
-  {
-    "id": "1738332942695",
-    "x": "574.20",
-    "y": "139.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "",
-    "description": "",
-    "address": "",
-    "priority": "없음"
-  },
   {
     "id": "1738332945823",
     "x": "539.20",
@@ -954,13 +957,13 @@ const pinsData = [
     "id": "1738333116090",
     "x": "587.20",
     "y": "141.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "",
+    "building": "예인관",
+    "floor": "B1층",
+    "category": "편의시설",
+    "name": "GS25 편의점",
     "description": "",
     "address": "",
-    "priority": "없음"
+    "priority": "2순위"
   },
   {
     "id": "1738333131234",
@@ -1021,6 +1024,18 @@ const pinsData = [
     "description": "모두의 쉼터 한울마당!",
     "address": "",
     "priority": "3순위"
+  },
+  {
+    "id": "1738461992899",
+    "x": "574.80",
+    "y": "137.20",
+    "building": "예인관",
+    "floor": "",
+    "category": "",
+    "name": "예인관",
+    "description": "",
+    "address": "",
+    "priority": "1순위"
   }
 ]
 
@@ -1225,11 +1240,17 @@ function createPin(x, y, details = {}) {
     pin.dataset.priority = details.priority || '미정';
     pin.dataset.building = details.building || '미정';
 
-    // 핀 이름 오버레이 추가
+    
     const pinLabel = document.createElement('div');
-    pinLabel.className = 'pin-label';
     pinLabel.innerText = details.name || '이름 없음';
     pinLabel.style.display = 'none';
+
+    if (details.priority === "1순위") {
+        pinLabel.className = 'pin-label';
+    } else if (details.priority === "2순위","3순위") {
+        pinLabel.className = 'pin-label2';
+    }
+
     pin.appendChild(pinLabel);
 
     // 마우스 오버 시 이름 표시
@@ -1339,7 +1360,6 @@ function showExitButton() {
         exitButton.style.flexDirection = 'column';
         exitButton.style.gap = '10px';
         
-        // 건물 나가기 버튼
         const exitButtonElement = document.createElement('button');
         exitButtonElement.className = 'exit-button';
         exitButtonElement.innerText = '건물 나가기';
@@ -1351,46 +1371,45 @@ function showExitButton() {
         exitButtonElement.style.fontSize = '14px';
         exitButtonElement.style.border = 'none';
         exitButtonElement.style.cursor = 'pointer';
-        exitButtonElement.style.marginBottom = '10px'; // 원하는 여백 값으로 조정
+        exitButtonElement.style.marginBottom = '10px';
+        exitButtonElement.style.border = '2px solid rgb(213 213 213)';
         
         exitButtonElement.addEventListener('click', function() {
             hidePriorityPins();
             hideExitButton();
-            filterPins2()
+            filterPins2();
             if (activeInfoBox) {
                 activeInfoBox.style.display = 'none';
             }
         });
 
-        // 층 버튼 컨테이너 생성
         const floorButtonsContainer = document.createElement('div');
         floorButtonsContainer.style.display = 'flex';
         floorButtonsContainer.style.flexDirection = 'column';
         floorButtonsContainer.style.gap = '10px';
-        floorButtonsContainer.className = 'floor-buttons-container'; // Add class for easier reference
+        floorButtonsContainer.className = 'floor-buttons-container';
 
         exitButton.appendChild(exitButtonElement);
         exitButton.appendChild(floorButtonsContainer);
         document.body.appendChild(exitButton);
     }
 
-    // 현재 보이는 2순위 핀 중 하나를 찾아서 해당 건물 정보 가져오기
     const visibleSecondaryPin = document.querySelector('.pin[data-priority="2순위"]:not([style*="display: none"])');
     if (visibleSecondaryPin) {
         const currentBuilding = visibleSecondaryPin.dataset.building;
         
-        // 해당 건물의 층들 추출
         const buildingFloors = [...new Set(
             pinsData
                 .filter(pin => pin.building === currentBuilding && pin.priority === "2순위" && pin.floor)
                 .map(pin => pin.floor)
         )];
 
-        // 기존 층 버튼들 제거
         const floorButtonsContainer = exitButton.querySelector('.floor-buttons-container');
         floorButtonsContainer.innerHTML = '';
 
-        // 새로운 층 버튼들 생성
+        // Keep track of the currently selected floor button
+        let selectedButton = null;
+
         buildingFloors.sort().reverse().forEach(floor => {
             const floorButton = document.createElement('button');
             floorButton.className = 'floor-button';
@@ -1403,9 +1422,20 @@ function showExitButton() {
             floorButton.style.fontSize = '14px';
             floorButton.style.border = 'none';
             floorButton.style.cursor = 'pointer';
+            floorButton.style.border = '2px solid #f79de0';
+            floorButton.style.transition = 'background-color 0.3s ease'; // Add smooth transition
 
             floorButton.addEventListener('click', () => {
-                // 해당 건물의 해당 층 핀만 표시
+                // Reset previously selected button
+                if (selectedButton) {
+                    selectedButton.style.background = '#4a4a4a';
+                }
+                
+                // Highlight current button
+                floorButton.style.background = 'rgb(195, 73, 201)'; // Change to blue when selected
+                selectedButton = floorButton;
+
+                // Show pins for selected floor
                 pins.forEach(pinObj => {
                     const isTargetPin = 
                         pinObj.pin.dataset.priority === "2순위" && 
