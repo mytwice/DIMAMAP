@@ -2179,11 +2179,19 @@ function handleUrlPinLocation() {
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
 
-    // 부분 일치 검색으로 변경
-    const matchedPin = pinsData.find(pin => 
-        pin.name?.toLowerCase().includes(locationName.toLowerCase()) || 
-        pin.building?.toLowerCase().includes(locationName.toLowerCase())
-    );
+    // 부분 문자열 매칭을 위해 find 로직 수정
+    const matchedPin = pinsData.find(pin => {
+        // 검색어와 대상 문자열을 모두 소문자로 변환하여 비교
+        const searchTerm = locationName.toLowerCase();
+        const pinName = (pin.name || '').toLowerCase();
+        const pinBuilding = (pin.building || '').toLowerCase();
+        
+        // includes()를 사용하여 부분 문자열 매칭
+        return pinName.includes(searchTerm) || 
+               searchTerm.includes(pinName) ||
+               pinBuilding.includes(searchTerm) ||
+               searchTerm.includes(pinBuilding);
+    });
 
     if (matchedPin) {
         // 모든 핀을 숨김
@@ -2201,9 +2209,9 @@ function handleUrlPinLocation() {
             pinObj.pin.style.display = 'block';
             
             // 핀 강조 스타일 적용
-            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)'; // 크기 1.5배
-            pinObj.pin.style.zIndex = '1001'; // 다른 핀들보다 앞에 표시
-            pinObj.pin.style.filter = 'drop-shadow(0 0 10px rgba(233, 30, 99, 0.8))'; // 빛나는 효과
+            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
+            pinObj.pin.style.zIndex = '1001';
+            pinObj.pin.style.filter = 'drop-shadow(0 0 10px rgba(233, 30, 99, 0.8))';
             
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
