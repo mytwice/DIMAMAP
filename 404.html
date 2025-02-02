@@ -2180,10 +2180,8 @@ function handleUrlPinLocation() {
     const locationName = decodeURIComponent(path.split('/').pop());
 
     const matchedPin = pinsData.find(pin => 
-        pin.name === locationName || 
-        pin.building === locationName ||
-        pin.name.includes('2순위') || // 2순위 포함 확인
-        pin.name.includes('3순위')    // 3순위 포함 확인
+        pin.name.includes(locationName) ||    // 앞에 다른 문자열이 있어도 포함되어 있으면 매칭
+        pin.building.includes(locationName)  // 건물 이름에도 같은 방식 적용
     );
 
     if (matchedPin) {
