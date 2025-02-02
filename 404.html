@@ -2179,32 +2179,50 @@ function handleUrlPinLocation() {
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
 
-    // pin.name 또는 pin.building에 locationName이 포함되어 있으면 매치
-    const matchedPin = pinsData.find(pin => 
-        pin.name.includes(locationName) || 
-        pin.building.includes(locationName)
-    );
+    let matchedPin = null;
+    let matchedSubstring = '';
+
+    // pinsData 배열을 순회하며 locationName이 포함되어 있는지 확인
+    for (const pin of pinsData) {
+        // pin.name에 포함되어 있으면 해당 부분 추출
+        if (pin.name.includes(locationName)) {
+            matchedPin = pin;
+            const startIndex = pin.name.indexOf(locationName);
+            matchedSubstring = pin.name.substring(startIndex, startIndex + locationName.length);
+            break; // 첫번째 매칭된 핀을 찾으면 종료
+        }
+        // 만약 pin.building에 포함되어 있으면 해당 부분 추출
+        if (pin.building.includes(locationName)) {
+            matchedPin = pin;
+            const startIndex = pin.building.indexOf(locationName);
+            matchedSubstring = pin.building.substring(startIndex, startIndex + locationName.length);
+            break;
+        }
+    }
 
     if (matchedPin) {
-        // 모든 핀을 숨김
+        console.log("매칭된 부분:", matchedSubstring);
+
+        // 모든 핀 숨기기
         pins.forEach(p => {
             p.pin.style.display = 'none';
         });
-        
-        const pinObj = pins.find(p => 
-            p.coordinates.x == matchedPin.x && 
-            p.coordinates.y == matchedPin.y
+
+        // pins 배열에서 좌표가 일치하는 핀 객체 찾기
+        const pinObj = pins.find(p =>
+            p.coordinates.x === matchedPin.x &&
+            p.coordinates.y === matchedPin.y
         );
 
         if (pinObj) {
             // 해당 핀만 표시
             pinObj.pin.style.display = 'block';
-            
-            // 핀 강조 스타일 적용
+
+            // 핀 강조 스타일 적용 (크기 1.5배, 앞쪽 표시, 빛나는 효과)
             pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
             pinObj.pin.style.zIndex = '1001';
             pinObj.pin.style.filter = 'drop-shadow(0 0 10px rgba(233, 30, 99, 0.8))';
-            
+
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
 
@@ -2226,26 +2244,25 @@ function handleUrlPinLocation() {
                 box-shadow: 0 2px 6px rgba(0,0,0,0.2);
                 z-index: 1002;
             `;
-            
+
             viewAllButton.addEventListener('click', () => {
-                // 모든 핀 표시 및 강조 효과 제거
+                // 강조 효과 제거 및 모든 핀 다시 표시 (filterPins2 함수 사용)
                 pinObj.pin.style.transform = 'translate(-50%, -95%)';
                 pinObj.pin.style.filter = 'none';
                 filterPins2(); // 1순위와 3순위 핀 표시
-                
+
                 // 정보창 닫기
                 if (activeInfoBox) {
                     activeInfoBox.style.display = 'none';
                 }
-                
+
                 // 버튼 제거
                 viewAllButton.remove();
             });
-            
+
             document.body.appendChild(viewAllButton);
         }
     } else {
-        // 검색어와 일치하는 핀이 없을 경우
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
