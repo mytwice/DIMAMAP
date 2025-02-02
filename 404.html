@@ -2179,9 +2179,10 @@ function handleUrlPinLocation() {
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
 
+    // locationName이 pin.name의 일부로 포함되어 있는지 확인
     const matchedPin = pinsData.find(pin => 
-        pin.name.endsWith(locationName) ||  // pin.name이 locationName으로 끝나는지 확인
-        pin.building.endsWith(locationName)  // 건물 이름에서도 같은 방식 적용
+        pin.name.includes(locationName) ||  // locationName이 pin.name에 포함되어 있는지 확인
+        pin.building.includes(locationName)  // locationName이 pin.building에 포함되어 있는지 확인
     );
 
     if (matchedPin) {
