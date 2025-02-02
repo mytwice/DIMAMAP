@@ -2192,7 +2192,8 @@ function handleUrlPinLocation() {
         
         const pinObj = pins.find(p => 
             p.coordinates.x == matchedPin.x && 
-            p.coordinates.y == matchedPin.y
+            p.coordinates.y == matchedPin.y && 
+            p.pin.classList.contains('pin-secondary') // pin-secondary만 작동
         );
 
         if (pinObj) {
@@ -2205,7 +2206,6 @@ function handleUrlPinLocation() {
             pinObj.pin.style.filter = 'drop-shadow(0 0 15px rgba(233, 30, 99, 1))'; // 더 강한 빛나는 효과
             
             // 지도 확대 및 이동
-            smoothZoom(4, pinObj.coordinates.x, pinObj.coordinates.y);
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
 
@@ -2238,9 +2238,6 @@ function handleUrlPinLocation() {
                 if (activeInfoBox) {
                     activeInfoBox.style.display = 'none';
                 }
-                
-                // 지도 축소
-                smoothZoom(2, window.innerWidth / 2, window.innerHeight / 2);
                 
                 // 버튼 제거
                 viewAllButton.remove();
