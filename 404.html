@@ -2177,16 +2177,16 @@ function setupFilters() {
 
 function handleUrlPinLocation() {
     const path = window.location.pathname;
-    const locationName = decodeURIComponent(path.split('/').pop()).trim();
+    let locationName = decodeURIComponent(path.split('/').pop());
 
-    // 검색어를 소문자로 변환
-    const searchTerm = locationName.toLowerCase();
+    // 검색어 전처리: 공백 제거 및 정규 표현식 패턴 생성
+    locationName = locationName.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'); // 특수문자 이스케이프
+    const regex = new RegExp(`.*${locationName}.*`, 'i'); // 앞뒤 내용 포함, 대소문자 구분 X
 
-    // includes()를 사용하여 부분 문자열 검색
-    const matchedPin = pinsData.find(pin => 
-        new RegExp(`.*${locationName}.*`).test(pin.name) || 
-        new RegExp(`.*${locationName}.*`).test(pin.building)
+    const matchedPins = pinsData.filter(pin => 
+        regex.test(pin.name) || regex.test(pin.building)
     );
+
 
     if (matchedPin) {
         // 모든 핀을 숨김
