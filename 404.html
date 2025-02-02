@@ -2253,13 +2253,6 @@ function moveToPin(pin, zoom = false) {
     const pinRect = pin.getBoundingClientRect();
     const wrapperRect = mapWrapper.getBoundingClientRect();
 
-    const targetX = -(pin.offsetLeft * currentScale - (wrapperRect.width / 2));
-    const targetY = -(pin.offsetTop * currentScale - (wrapperRect.height / 2));
-
-    mapContainer.style.transition = 'transform 0.5s ease-out';
-    currentTranslateX = targetX;
-    currentTranslateY = targetY;
-
     if (zoom) {
         currentScale = Math.min(4.5, currentScale * 1.8); // 최대 4.5배까지 확대
     }
