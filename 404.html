@@ -2186,7 +2186,10 @@ function handleUrlPinLocation() {
     const matchedPin = pinsData.find(pin => 
         new RegExp(`\\b${locationName}\\b`).test(pin.name) || 
         new RegExp(`\\b${locationName}\\b`).test(pin.building)
+        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
+        (pin.building && pin.building.toLowerCase().includes(searchTerm))
     );
+
 
     if (matchedPin) {
         // 모든 핀을 숨김
