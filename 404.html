@@ -2176,96 +2176,123 @@ function setupFilters() {
 }
 
 function handleUrlPinLocation() {
+    // 현재 URL 경로에서 마지막 부분을 디코딩하여 locationName을 추출합니다.
     const path = window.location.pathname;
-    const locationName = decodeURIComponent(path.split('/').pop());
+    let locationName = decodeURIComponent(path.split('/').pop()).trim(); // 앞뒤 공백 제거
+
+    console.log("입력받은 locationName:", locationName);
 
     let matchedPin = null;
     let matchedSubstring = '';
 
+    // pinsData 배열이 정상적으로 로드되어 있는지 확인합니다.
+    if (!Array.isArray(pinsData) || pinsData.length === 0) {
+        console.error("pinsData가 올바르게 로드되지 않았습니다.");
+        return;
+    }
+
     // pinsData 배열을 순회하며 locationName과 핀 이름 또는 건물명이 서로 포함 관계에 있는지 확인합니다.
     for (const pin of pinsData) {
+        // 디버깅: 각 핀의 이름과 건물명을 출력합니다.
+        console.log("검사 중 핀:", pin.name, pin.building);
+
         // pin.name과 locationName이 서로 포함 관계에 있는지 확인
         if (pin.name.includes(locationName) || locationName.includes(pin.name)) {
             matchedPin = pin;
-            // 매칭된 문자열을 결정 (더 짧은 문자열 사용)
-            matchedSubstring = (pin.name.length <= locationName.length) 
-                ? pin.name 
+            // 두 문자열 중 더 짧은 문자열(원래 핀에 정의된 이름)을 사용
+            matchedSubstring = (pin.name.length <= locationName.length)
+                ? pin.name
                 : locationName;
             break;
         }
         // pin.building과 locationName이 서로 포함 관계에 있는지 확인
         if (pin.building.includes(locationName) || locationName.includes(pin.building)) {
             matchedPin = pin;
-            matchedSubstring = (pin.building.length <= locationName.length) 
-                ? pin.building 
+            matchedSubstring = (pin.building.length <= locationName.length)
+                ? pin.building
                 : locationName;
             break;
         }
     }
 
     if (matchedPin) {
-        console.log("매칭된 부분:", matchedSubstring);
+        console.log("매칭된 핀:", matchedPin, "매칭된 부분:", matchedSubstring);
 
-        // 모든 핀 숨기기
+        // 모든 핀을 숨깁니다.
         pins.forEach(p => {
-            p.pin.style.display = 'none';
+            if(p.pin) p.pin.style.display = 'none';
         });
 
-        // pins 배열에서 좌표가 일치하는 핀 객체 찾기
+        // pins 배열에서 좌표가 일치하는 핀 객체를 찾습니다.
         const pinObj = pins.find(p =>
             p.coordinates.x === matchedPin.x &&
             p.coordinates.y === matchedPin.y
         );
 
-        if (pinObj) {
-            // 해당 핀만 표시
-            pinObj.pin.style.display = 'block';
-
-            // 핀 강조 스타일 적용 (크기 1.5배, 앞쪽 표시, 빛나는 효과)
-            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
-            pinObj.pin.style.zIndex = '1001';
-            pinObj.pin.style.filter = 'drop-shadow(0 0 10px rgba(233, 30, 99, 0.8))';
-
-            moveToPin(pinObj.pin);
-            showPinInfoBox(pinObj.pin, matchedPin);
-
-            // 전체 지도보기 버튼 생성
-            const viewAllButton = document.createElement('button');
-            viewAllButton.innerText = '전체 지도 보기';
-            viewAllButton.style.cssText = `
-                position: fixed;
-                bottom: 100px;
-                left: 50%;
-                transform: translateX(-50%);
-                padding: 12px 24px;
-                background: #e155b5;
-                color: white;
-                border: none;
-                border-radius: 20px;
-                font-size: 16px;
-                cursor: pointer;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                z-index: 1002;
-            `;
-
-            viewAllButton.addEventListener('click', () => {
-                // 강조 효과 제거 및 모든 핀 다시 표시 (filterPins2 함수 사용)
-                pinObj.pin.style.transform = 'translate(-50%, -95%)';
-                pinObj.pin.style.filter = 'none';
-                filterPins2(); // 1순위와 3순위 핀 표시
-
-                // 정보창 닫기
-                if (activeInfoBox) {
-                    activeInfoBox.style.display = 'none';
-                }
-
-                // 버튼 제거
-                viewAllButton.remove();
-            });
-
-            document.body.appendChild(viewAllButton);
+        if (!pinObj) {
+            console.error("pins 배열에서 좌표가 일치하는 핀을 찾지 못했습니다.");
+            return;
         }
+
+        // 해당 핀만 표시하고 강조 효과를 적용합니다.
+        pinObj.pin.style.display = 'block';
+        pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
+        pinObj.pin.style.zIndex = '1001';
+        pinObj.pin.style.filter = 'drop-shadow(0 0 10px rgba(233, 30, 99, 0.8))';
+
+        // 핀 위치로 이동 및 정보창 표시 함수 호출
+        if (typeof moveToPin === 'function') {
+            moveToPin(pinObj.pin);
+        } else {
+            console.warn("moveToPin 함수가 정의되어 있지 않습니다.");
+        }
+        if (typeof showPinInfoBox === 'function') {
+            showPinInfoBox(pinObj.pin, matchedPin);
+        } else {
+            console.warn("showPinInfoBox 함수가 정의되어 있지 않습니다.");
+        }
+
+        // 전체 지도보기 버튼 생성
+        const viewAllButton = document.createElement('button');
+        viewAllButton.innerText = '전체 지도 보기';
+        viewAllButton.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: #e155b5;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 1002;
+        `;
+
+        viewAllButton.addEventListener('click', () => {
+            // 강조 효과 제거 및 모든 핀 다시 표시 (filterPins2 함수 사용)
+            pinObj.pin.style.transform = 'translate(-50%, -95%)';
+            pinObj.pin.style.filter = 'none';
+
+            if (typeof filterPins2 === 'function') {
+                filterPins2();
+            } else {
+                console.warn("filterPins2 함수가 정의되어 있지 않습니다.");
+            }
+
+            // 정보창 닫기
+            if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
+            // 버튼 제거
+            viewAllButton.remove();
+        });
+
+        document.body.appendChild(viewAllButton);
     } else {
+        // 매칭되지 않을 경우 경고창 출력
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
