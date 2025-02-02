@@ -2177,28 +2177,13 @@ function setupFilters() {
 
 function handleUrlPinLocation() {
     const path = window.location.pathname;
-    const searchTerm = decodeURIComponent(path.split('/').pop()).toLowerCase();
+    const locationName = decodeURIComponent(path.split('/').pop());
 
-    // 부분 일치 검색을 위한 함수
-    const findMatchingPin = (searchTerm) => {
-        return pinsData.find(pin => {
-            const pinName = (pin.name || '').toLowerCase();
-            const pinBuilding = (pin.building || '').toLowerCase();
-            
-            // 완전 일치 검색
-            if (pinName === searchTerm || pinBuilding === searchTerm) {
-                return true;
-            }
-
-            // 부분 일치 검색
-            const searchTerms = searchTerm.split(' ');
-            return searchTerms.every(term => 
-                pinName.includes(term) || pinBuilding.includes(term)
-            );
-        });
-    };
-
-    const matchedPin = findMatchingPin(searchTerm);
+    // 부분 일치 검색으로 변경
+    const matchedPin = pinsData.find(pin => 
+        pin.name?.toLowerCase().includes(locationName.toLowerCase()) || 
+        pin.building?.toLowerCase().includes(locationName.toLowerCase())
+    );
 
     if (matchedPin) {
         // 모든 핀을 숨김
@@ -2207,8 +2192,8 @@ function handleUrlPinLocation() {
         });
         
         const pinObj = pins.find(p => 
-            p.coordinates.x === matchedPin.x && 
-            p.coordinates.y === matchedPin.y
+            p.coordinates.x == matchedPin.x && 
+            p.coordinates.y == matchedPin.y
         );
 
         if (pinObj) {
@@ -2216,9 +2201,9 @@ function handleUrlPinLocation() {
             pinObj.pin.style.display = 'block';
             
             // 핀 강조 스타일 적용
-            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
-            pinObj.pin.style.zIndex = '1001';
-            pinObj.pin.style.filter = 'drop-shadow(0 0 10px rgba(233, 30, 99, 0.8))';
+            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)'; // 크기 1.5배
+            pinObj.pin.style.zIndex = '1001'; // 다른 핀들보다 앞에 표시
+            pinObj.pin.style.filter = 'drop-shadow(0 0 10px rgba(233, 30, 99, 0.8))'; // 빛나는 효과
             
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
@@ -2260,7 +2245,7 @@ function handleUrlPinLocation() {
             document.body.appendChild(viewAllButton);
         }
     } else {
-        alert(`"${decodeURIComponent(path.split('/').pop())}"에 해당하는 위치를 찾을 수 없습니다.`);
+        alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
 
