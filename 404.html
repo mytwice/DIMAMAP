@@ -196,11 +196,11 @@
         /* 2순위 핀 스타일 - 원형 */
         .pin-secondary {
             position: absolute; /* Ensure absolute positioning */
-            width: 2px; /* Fixed width */
-            height: 2px; /* Fixed height */
+            width: 1px; /* Fixed width */
+            height: 1px; /* Fixed height */
             background-color: #E91E63; /* Pink color */
             border-radius: 50%; /* Circular shape */
-            border: 2px solid white; /* White border */
+            border: 1px solid white; /* White border */
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow */
             transform: translate(-50%, -50%); /* Center the pin */
             z-index: 1000; /* Ensure it's above other elements */
@@ -213,7 +213,22 @@
             color: white;
             padding: 5px 10px;
             font-size: 7px;
-            transform: translate(59%, 10%);
+            transform: translate(77%, 20%);
+            border-radius: 5px;
+            white-space: nowrap;
+            text-align: center;
+            display: none;
+            z-index: 1001;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .pin-label2 {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            font-size: 7px;
+            transform: translate(20%, -46%);
             border-radius: 5px;
             white-space: nowrap;
             text-align: center;
@@ -222,7 +237,6 @@
             transition: all 0.2s ease-in-out;
         }
         
-
         .pin-info-box {
             position: fixed;
             background: white;
@@ -597,6 +611,12 @@
         font-size: 16px;
     }
 
+    .search-results {
+        margin: 0 auto;
+        width: 78%; /* 모바일에서는 부모 요소 대비 90% 너비 */
+        font-size: 16px; /* 가독성 증가 */
+        left: 10%;
+}
     /* 카테고리 스타일 */
     #category-filter {
         display: flex;
@@ -636,6 +656,16 @@
         bottom: 70px;
     }
 }
+
+.pin-info-box {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 54%; /* 모바일 화면에서의 너비 */
+        max-width: 300px;
+        z-index: 1002; /* 다른 요소들보다 위에 표시 */
+    }
 
     @media (max-width: 480px) {
         /* 작은 화면에서 라벨 크기 및 입력 크기 조정 */
@@ -717,7 +747,8 @@
     <div class="popup-content">
         <span class="close">&times;</span>
         <h2>제보/정보</h2>
-        <p>I DIMA 프로젝트</p>
+        <p style="word-break: keep-all;">잘못된 정보나 추가할 사항이 있을 경우에 언제든 연락주세요!</p>
+        <p>제작 : I DIMA 프로젝트</p>
         <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
     </div>
 </div>
@@ -746,32 +777,20 @@ const TOUCH_DELAY = 300; // 더블탭 감지를 위한 시간 간격 (ms)
 // 맵 설정
 const mapConfig = {
     initialScale: 2.6,        // 2.6에서 1.7로 변경
-    initialX: -747,           // 0에서 -70으로 변경
-    initialY: -726,
+    initialX: -550,           // 0에서 -70으로 변경
+    initialY: -630,
     minScale: 1.0,            // 2.5에서 0으로 변경
     maxScale: 9,
     zoomSpeed: 1,
     mobile: {
         initialScale: 1.2,
-        initialX: -480,
-        initialY: -80
+        initialX: -460,
+        initialY: -10
     }
 };
 
 // 핀 데이터
 const pinsData = [
-  {
-    "id": "1738332942695",
-    "x": "574.20",
-    "y": "139.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "",
-    "description": "",
-    "address": "",
-    "priority": "없음"
-  },
   {
     "id": "1738332945823",
     "x": "539.20",
@@ -944,13 +963,13 @@ const pinsData = [
     "id": "1738333116090",
     "x": "587.20",
     "y": "141.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "",
+    "building": "예인관",
+    "floor": "B1층",
+    "category": "편의시설",
+    "name": "GS25 편의점",
     "description": "",
     "address": "",
-    "priority": "없음"
+    "priority": "2순위"
   },
   {
     "id": "1738333131234",
@@ -1011,6 +1030,18 @@ const pinsData = [
     "description": "모두의 쉼터 한울마당!",
     "address": "",
     "priority": "3순위"
+  },
+  {
+    "id": "1738461992899",
+    "x": "574.80",
+    "y": "137.20",
+    "building": "예인관",
+    "floor": "",
+    "category": "",
+    "name": "예인관",
+    "description": "",
+    "address": "",
+    "priority": "1순위"
   }
 ]
 
@@ -1116,6 +1147,12 @@ function filterPinsBySearch() {
             pinObj.pin.style.display = 'none'; // 일치하지 않으면 숨김
         }
     });
+    // 검색어가 없을 때
+    if (searchTerm.length === 0) {
+        searchResults.style.display = 'none';
+        filterPins2(); // 1순위와 3순위 핀만 표시
+        return;
+    }
 }
 
 // 검색창에 입력될 때마다 필터링 적용
@@ -1199,7 +1236,7 @@ function createPin(x, y, details = {}) {
 
         // 우선순위에 따라 추가 클래스 적용
         if (details.priority === "3순위") {
-        pin.classList.add('pin-primary');
+        pin.classList.add('pin-secondary');
     }
     
     pin.style.left = `${x}px`;
@@ -1209,11 +1246,17 @@ function createPin(x, y, details = {}) {
     pin.dataset.priority = details.priority || '미정';
     pin.dataset.building = details.building || '미정';
 
-    // 핀 이름 오버레이 추가
+    
     const pinLabel = document.createElement('div');
-    pinLabel.className = 'pin-label';
     pinLabel.innerText = details.name || '이름 없음';
     pinLabel.style.display = 'none';
+
+    if (details.priority === "1순위") {
+        pinLabel.className = 'pin-label';
+    } else if (details.priority === "2순위","3순위") {
+        pinLabel.className = 'pin-label2';
+    }
+
     pin.appendChild(pinLabel);
 
     // 마우스 오버 시 이름 표시
@@ -1242,6 +1285,9 @@ function createPin(x, y, details = {}) {
         if (details.priority === "1순위") {
             showPriorityPins(details.building); // 같은 건물의 2순위 핀을 표시
             showExitButton(); // Exit button appears when 2순위 pins are shown
+            if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
         } else {
             // 2순위 핀만 안내창을 표시
             showPinInfoBox(pin, details);
@@ -1320,7 +1366,6 @@ function showExitButton() {
         exitButton.style.flexDirection = 'column';
         exitButton.style.gap = '10px';
         
-        // 건물 나가기 버튼
         const exitButtonElement = document.createElement('button');
         exitButtonElement.className = 'exit-button';
         exitButtonElement.innerText = '건물 나가기';
@@ -1332,30 +1377,45 @@ function showExitButton() {
         exitButtonElement.style.fontSize = '14px';
         exitButtonElement.style.border = 'none';
         exitButtonElement.style.cursor = 'pointer';
+        exitButtonElement.style.marginBottom = '10px';
+        exitButtonElement.style.border = '2px solid rgb(213 213 213)';
         
         exitButtonElement.addEventListener('click', function() {
             hidePriorityPins();
             hideExitButton();
+            filterPins2();
             if (activeInfoBox) {
                 activeInfoBox.style.display = 'none';
             }
         });
+
+        const floorButtonsContainer = document.createElement('div');
+        floorButtonsContainer.style.display = 'flex';
+        floorButtonsContainer.style.flexDirection = 'column';
+        floorButtonsContainer.style.gap = '10px';
+        floorButtonsContainer.className = 'floor-buttons-container';
+
+        exitButton.appendChild(exitButtonElement);
+        exitButton.appendChild(floorButtonsContainer);
+        document.body.appendChild(exitButton);
+    }
+
+    const visibleSecondaryPin = document.querySelector('.pin[data-priority="2순위"]:not([style*="display: none"])');
+    if (visibleSecondaryPin) {
+        const currentBuilding = visibleSecondaryPin.dataset.building;
         
-        // 해당 건물의 층들 추출
-        const currentBuilding = document.querySelector('.pin[data-priority="2순위"]:not([style*="display: none"])').dataset.building;
         const buildingFloors = [...new Set(
             pinsData
                 .filter(pin => pin.building === currentBuilding && pin.priority === "2순위" && pin.floor)
                 .map(pin => pin.floor)
         )];
 
-        // 층 버튼 컨테이너
-        const floorButtonsContainer = document.createElement('div');
-        floorButtonsContainer.style.display = 'flex';
-        floorButtonsContainer.style.flexDirection = 'column'; // 1열로 변경
-        floorButtonsContainer.style.gap = '10px'; // 버튼 간 간격 추가
-        
-        // 층 버튼 생성
+        const floorButtonsContainer = exitButton.querySelector('.floor-buttons-container');
+        floorButtonsContainer.innerHTML = '';
+
+        // Keep track of the currently selected floor button
+        let selectedButton = null;
+
         buildingFloors.sort().reverse().forEach(floor => {
             const floorButton = document.createElement('button');
             floorButton.className = 'floor-button';
@@ -1368,10 +1428,20 @@ function showExitButton() {
             floorButton.style.fontSize = '14px';
             floorButton.style.border = 'none';
             floorButton.style.cursor = 'pointer';
+            floorButton.style.border = '2px solid #f79de0';
+            floorButton.style.transition = 'background-color 0.3s ease'; // Add smooth transition
 
-            
             floorButton.addEventListener('click', () => {
-                // 해당 건물의 해당 층 핀만 표시
+                // Reset previously selected button
+                if (selectedButton) {
+                    selectedButton.style.background = '#4a4a4a';
+                }
+                
+                // Highlight current button
+                floorButton.style.background = 'rgb(195, 73, 201)'; // Change to blue when selected
+                selectedButton = floorButton;
+
+                // Show pins for selected floor
                 pins.forEach(pinObj => {
                     const isTargetPin = 
                         pinObj.pin.dataset.priority === "2순위" && 
@@ -1384,13 +1454,9 @@ function showExitButton() {
             
             floorButtonsContainer.appendChild(floorButton);
         });
-
-        exitButton.appendChild(exitButtonElement);
-        exitButton.appendChild(floorButtonsContainer);
-        document.body.appendChild(exitButton);
-    } else {
-        exitButton.style.display = 'block';
     }
+
+    exitButton.style.display = 'block';
 }
 
 // 선택된 층의 핀만 표시하는 함수
@@ -1445,7 +1511,21 @@ function showPinInfoBox(pin, pinData) {
     const infoBox = document.createElement('div');
     infoBox.className = 'pin-info-box';
     
-    infoBox.style.left = `${pinRect.left}px`;
+    // 모바일 여부 확인
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        // 모바일에서는 화면 중앙에 표시
+        infoBox.style.left = '50%';
+        infoBox.style.top = '50%';
+        infoBox.style.transform = 'translate(-50%, -50%)';
+    } else {
+        // 데스크톱에서는 기존 위치 유지
+        infoBox.style.left = `${pinRect.left + 100}px`;
+        infoBox.style.top = `${pinRect.top - 100}px`;
+    }
+    
+    infoBox.style.left = `${pinRect.left + 100}px`;
     infoBox.style.top = `${pinRect.top - 100}px`;
 
     const closeBtn = document.createElement('span');
@@ -1845,16 +1925,25 @@ function generateBuildingList() {
     // X 버튼 추가
     const closeButton = document.createElement('div');
     closeButton.innerHTML = '&times;';
-    closeButton.style.position = 'absolute';
-    closeButton.style.top = '10px';
-    closeButton.style.right = '10px';
-    closeButton.style.fontSize = '24px';
-    closeButton.style.cursor = 'pointer';
+    closeButton.style.cssText = `
+        position: sticky;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        cursor: pointer;
+        float: right;
+        padding: 5px 10px;
+        z-index: 1000;
+    `;
     closeButton.addEventListener('click', () => {
         document.querySelector('.building-list').style.display = 'none';
+        filterPins2()
+        if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
     });
     buildingContainer.appendChild(closeButton);
-
+    
     Object.entries(buildingGroups).forEach(([building, floors]) => {
         const buildingSection = document.createElement('div');
         buildingSection.className = 'building-section';
@@ -1890,6 +1979,9 @@ function generateBuildingList() {
                             pinObj.building === building && 
                             pinObj.floor === floor) {
                             pinObj.pin.style.display = 'block';
+                            if (activeInfoBox) {
+                                activeInfoBox.style.display = 'none';
+                            }
                         } else {
                             pinObj.pin.style.display = 'none';
                         }
@@ -1958,6 +2050,10 @@ document.addEventListener('click', function(e) {
     if (buildingList && buildingList.style.display !== 'none' &&
         !buildingList.contains(e.target) && !navItem.contains(e.target)) {
         buildingList.style.display = 'none';
+        filterPins2()
+        if (activeInfoBox) {
+                activeInfoBox.style.display = 'none';
+            }
     }
 });
 
@@ -2084,10 +2180,8 @@ function handleUrlPinLocation() {
     const locationName = decodeURIComponent(path.split('/').pop());
 
     const matchedPin = pinsData.find(pin => 
-        pin.name.toLowerCase() === locationName.toLowerCase() || 
-        pin.building.toLowerCase() === locationName.toLowerCase() ||
-        pin.name.toLowerCase().includes(locationName.toLowerCase()) ||
-        pin.building.toLowerCase().includes(locationName.toLowerCase())
+        pin.name === locationName || 
+        pin.building === locationName
     );
 
     if (matchedPin) {
