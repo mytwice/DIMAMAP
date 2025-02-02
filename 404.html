@@ -2177,7 +2177,7 @@ function setupFilters() {
 
 function handleUrlPinLocation() {
     const path = window.location.pathname;
-    const locationName = decodeURIComponent(path.split('/').pop());
+    const locationName = decodeURIComponent(path.split('/').pop()).trim();
 
     // 검색어를 소문자로 변환
     const searchTerm = locationName.toLowerCase();
