@@ -2182,20 +2182,23 @@ function handleUrlPinLocation() {
     let matchedPin = null;
     let matchedSubstring = '';
 
-    // pinsData 배열을 순회하며 locationName이 포함되어 있는지 확인
+    // pinsData 배열을 순회하며 locationName과 핀 이름 또는 건물명이 서로 포함 관계에 있는지 확인합니다.
     for (const pin of pinsData) {
-        // pin.name에 포함되어 있으면 해당 부분 추출
-        if (pin.name.includes(locationName)) {
+        // pin.name과 locationName이 서로 포함 관계에 있는지 확인
+        if (pin.name.includes(locationName) || locationName.includes(pin.name)) {
             matchedPin = pin;
-            const startIndex = pin.name.indexOf(locationName);
-            matchedSubstring = pin.name.substring(startIndex, startIndex + locationName.length);
-            break; // 첫번째 매칭된 핀을 찾으면 종료
+            // 매칭된 문자열을 결정 (더 짧은 문자열 사용)
+            matchedSubstring = (pin.name.length <= locationName.length) 
+                ? pin.name 
+                : locationName;
+            break;
         }
-        // 만약 pin.building에 포함되어 있으면 해당 부분 추출
-        if (pin.building.includes(locationName)) {
+        // pin.building과 locationName이 서로 포함 관계에 있는지 확인
+        if (pin.building.includes(locationName) || locationName.includes(pin.building)) {
             matchedPin = pin;
-            const startIndex = pin.building.indexOf(locationName);
-            matchedSubstring = pin.building.substring(startIndex, startIndex + locationName.length);
+            matchedSubstring = (pin.building.length <= locationName.length) 
+                ? pin.building 
+                : locationName;
             break;
         }
     }
