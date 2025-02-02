@@ -2184,8 +2184,8 @@ function handleUrlPinLocation() {
 
     // includes()를 사용하여 부분 문자열 검색
     const matchedPin = pinsData.find(pin => 
-        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
-        (pin.building && pin.building.toLowerCase().includes(searchTerm))
+        new RegExp(`\\b${locationName}\\b`).test(pin.name) || 
+        new RegExp(`\\b${locationName}\\b`).test(pin.building)
     );
 
     if (matchedPin) {
