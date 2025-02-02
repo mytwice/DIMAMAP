@@ -2183,34 +2183,10 @@ function handleUrlPinLocation() {
     const searchTerm = locationName.toLowerCase();
 
     // includes()를 사용하여 부분 문자열 검색
-    const matchedPin = pinsData.find(pin => {
-        const pinNameMatch = pin.name && pin.name.toLowerCase().includes(searchTerm);
-        const buildingMatch = pin.building && pin.building.toLowerCase().includes(searchTerm);
-
-        if (pinNameMatch) {
-            return pin;
-        } else if (buildingMatch) {
-            return pin;
-        }
-
-        // 여기서 부분 일치하는 부분을 추출해서 반환할 수 있음
-        if (pin.name) {
-            const matchedSubstring = pin.name.toLowerCase().match(searchTerm);
-            if (matchedSubstring) {
-                return pin;
-            }
-        }
-
-        if (pin.building) {
-            const matchedSubstring = pin.building.toLowerCase().match(searchTerm);
-            if (matchedSubstring) {
-                return pin;
-            }
-        }
-
-        return null;
-    });
-    
+    const matchedPin = pinsData.find(pin => 
+        new RegExp(`.*${locationName}.*`).test(pin.name) || 
+        new RegExp(`.*${locationName}.*`).test(pin.building)
+    );
 
     if (matchedPin) {
         // 모든 핀을 숨김
