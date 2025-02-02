@@ -2185,29 +2185,31 @@ function handleUrlPinLocation() {
     );
 
     if (matchedPin) {
-        // 모든 핀을 숨김
+        // 모든 핀 숨기기
         pins.forEach(p => {
             p.pin.style.display = 'none';
         });
-
+        
         const pinObj = pins.find(p => 
             p.coordinates.x == matchedPin.x && 
             p.coordinates.y == matchedPin.y
         );
 
         if (pinObj) {
-            // 해당 핀만 표시 및 강조
+            // 해당 핀만 표시
             pinObj.pin.style.display = 'block';
-            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.8)'; // 더 크게 강조
-            pinObj.pin.style.zIndex = '1001'; 
-            pinObj.pin.style.filter = 'drop-shadow(0 0 15px rgba(233, 30, 99, 1))'; // 더 강한 빛 효과
-
+            
+            // 핀 강조 스타일 적용
+            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(2)'; // 크기 2배 확대
+            pinObj.pin.style.zIndex = '1001'; // 다른 핀들보다 앞에 표시
+            pinObj.pin.style.filter = 'drop-shadow(0 0 15px rgba(233, 30, 99, 1))'; // 더 강한 빛나는 효과
+            
             // 지도 확대 및 이동
-            moveToPin(pinObj.pin, true);
-
+            smoothZoom(4, pinObj.coordinates.x, pinObj.coordinates.y);
+            moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
 
-            // "전체 지도 보기" 버튼 생성
+            // 전체 지도 보기 버튼 생성
             const viewAllButton = document.createElement('button');
             viewAllButton.innerText = '전체 지도 보기';
             viewAllButton.style.cssText = `
@@ -2225,43 +2227,30 @@ function handleUrlPinLocation() {
                 box-shadow: 0 2px 6px rgba(0,0,0,0.2);
                 z-index: 1002;
             `;
-
+            
             viewAllButton.addEventListener('click', () => {
                 // 모든 핀 표시 및 강조 효과 제거
                 pinObj.pin.style.transform = 'translate(-50%, -95%)';
                 pinObj.pin.style.filter = 'none';
                 filterPins2(); // 1순위와 3순위 핀 표시
-
+                
                 // 정보창 닫기
                 if (activeInfoBox) {
                     activeInfoBox.style.display = 'none';
                 }
-
+                
+                // 지도 축소
+                smoothZoom(2, window.innerWidth / 2, window.innerHeight / 2);
+                
                 // 버튼 제거
                 viewAllButton.remove();
             });
-
+            
             document.body.appendChild(viewAllButton);
         }
     } else {
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
-}
-
-// 특정 핀으로 이동 + 확대
-function moveToPin(pin, zoom = false) {
-    const pinRect = pin.getBoundingClientRect();
-    const wrapperRect = mapWrapper.getBoundingClientRect();
-
-    if (zoom) {
-        currentScale = Math.min(4.5, currentScale * 1.8); // 최대 4.5배까지 확대
-    }
-
-    updateMapTransform();
-
-    setTimeout(() => {
-        mapContainer.style.transition = '';
-    }, 500);
 }
 
 
