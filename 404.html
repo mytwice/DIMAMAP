@@ -2181,7 +2181,9 @@ function handleUrlPinLocation() {
 
     const matchedPin = pinsData.find(pin => 
         pin.name === locationName || 
-        pin.building === locationName
+        pin.building === locationName ||
+        pin.name.includes('2순위') || // 2순위 포함 확인
+        pin.name.includes('3순위')    // 3순위 포함 확인
     );
 
     if (matchedPin) {
