@@ -2179,14 +2179,23 @@ function handleUrlPinLocation() {
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
 
-    // 검색어를 소문자로 변환
-    const searchTerm = locationName.toLowerCase();
+    // 검색어를 소문자로 변환하고 공백으로 분리
+    const searchTerms = locationName.toLowerCase().split(/\s+/);
 
-    // includes()를 사용하여 부분 문자열 검색
-    const matchedPin = pinsData.find(pin => 
-        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
-        (pin.building && pin.building.toLowerCase().includes(searchTerm))
-    );
+    // 각 검색어에 대해 부분 일치 검사
+    const matchedPin = pinsData.find(pin => {
+        // pin.name과 pin.building이 존재하는 경우에만 검사
+        const nameMatch = pin.name ? searchTerms.some(term => 
+            pin.name.toLowerCase().includes(term)
+        ) : false;
+        
+        const buildingMatch = pin.building ? searchTerms.some(term => 
+            pin.building.toLowerCase().includes(term)
+        ) : false;
+
+        return nameMatch || buildingMatch;
+    });
+
 
     if (matchedPin) {
         // 모든 핀을 숨김
