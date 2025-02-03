@@ -2167,67 +2167,6 @@ function initializeMap() {
     updateMapTransform();
 }
 
-// URL에서 위치 정보를 추출하고 해당 핀을 표시하는 함수
-function handleUrlLocation() {
-    // URL에서 경로 부분 추출 및 디코딩
-    const path = decodeURIComponent(window.location.pathname);
-    const locationFromUrl = path.split('/').pop(); // 마지막 경로 부분 가져오기
-    
-    if (!locationFromUrl) return;
-    
-    // 검색어 전처리
-    const searchTerm = locationFromUrl.toLowerCase().trim();
-    
-    // 부분 일치 검색을 위한 함수
-    function partialMatch(pinName, searchTerm) {
-        // 띄어쓰기와 특수문자 제거하여 비교
-        const cleanPinName = pinName.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
-        const cleanSearchTerm = searchTerm.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
-        return cleanPinName.includes(cleanSearchTerm) || cleanSearchTerm.includes(cleanPinName);
-    }
-
-    // 검색어와 일치하는 핀 찾기
-    const matchingPins = pins.filter(pinObj => {
-        const pinName = (pinObj.name || '').toLowerCase();
-        const pinBuilding = (pinObj.building || '').toLowerCase();
-        const pinDescription = (pinObj.description || '').toLowerCase();
-        
-        return partialMatch(pinName, searchTerm) ||
-               partialMatch(pinBuilding, searchTerm) ||
-               partialMatch(pinDescription, searchTerm);
-    });
-
-    // 일치하는 핀이 있으면 표시
-    if (matchingPins.length > 0) {
-        // 다른 모든 핀 숨기기
-        pins.forEach(pinObj => {
-            pinObj.pin.style.display = 'none';
-        });
-
-        // 일치하는 핀들 표시
-        matchingPins.forEach(pinObj => {
-            pinObj.pin.style.display = 'block';
-            // 첫 번째 일치하는 핀으로 이동
-            if (pinObj === matchingPins[0]) {
-                moveToPin(pinObj.pin);
-                showPinInfoBox(pinObj.pin, pinObj);
-            }
-        });
-    }
-}
-
-// 페이지 로드 시 URL 체크
-document.addEventListener('DOMContentLoaded', function() {
-    // 기존 초기화 함수들 호출
-    initializeMap();
-    setupFilters();
-    initializeFilterOptions();
-    filterPins2();
-    
-    // URL 기반 위치 처리
-    handleUrlLocation();
-});
-
 // 필터 설정
 function setupFilters() {
     const filters = ['building-filter', 'floor-filter', 'category-filter'];
@@ -2235,6 +2174,111 @@ function setupFilters() {
         document.getElementById(filterId).addEventListener('change', filterPins);
     });
 }
+
+function handleUrlPinLocation() {
+    const path = window.location.pathname;
+    const locationName = decodeURIComponent(path.split('/').pop());
+
+    // 검색어를 소문자로 변환
+    const searchTerm = locationName.toLowerCase();
+
+    // includes()를 사용하여 부분 문자열 검색
+    const matchedPin = pinsData.find(pin => 
+        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
+        (pin.building && pin.building.toLowerCase().includes(searchTerm))
+    );
+
+    if (matchedPin) {
+        // 모든 핀을 숨김
+        pins.forEach(p => {
+            p.pin.style.display = 'none';
+        });
+        
+        const pinObj = pins.find(p => 
+            p.coordinates.x == matchedPin.x && 
+            p.coordinates.y == matchedPin.y
+        );
+
+        if (pinObj) {
+            // 해당 핀만 표시
+            pinObj.pin.style.display = 'block';
+            
+            // 핀 강조 스타일 적용
+            pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
+            pinObj.pin.style.zIndex = '1001';
+            
+            moveToPin(pinObj.pin);
+            showPinInfoBox(pinObj.pin, matchedPin);
+
+            // 전체 지도보기 버튼 생성
+            const viewAllButton = document.createElement('button');
+            viewAllButton.innerText = '전체 지도 보기';
+            viewAllButton.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 12px 24px;
+                background: #e155b5;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                font-size: 16px;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                z-index: 1002;
+            `;
+            
+            viewAllButton.addEventListener('click', () => {
+                // 모든 핀 표시 및 강조 효과 제거
+                pinObj.pin.style.transform = 'translate(-50%, -95%)';
+                pinObj.pin.style.filter = 'none';
+                filterPins2(); // 1순위와 3순위 핀 표시
+                
+                // 정보창 닫기
+                if (activeInfoBox) {
+                    activeInfoBox.style.display = 'none';
+                }
+                
+                // 버튼 제거
+                viewAllButton.remove();
+            });
+            
+            document.body.appendChild(viewAllButton);
+        }
+    } else {
+        // 검색어와 일치하는 핀이 없을 경우
+        alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const pathParts = window.location.pathname.split('/');
+    const locationName = pathParts[pathParts.length - 1];
+    
+    if (locationName && locationName !== 'DIMAMAP') {
+        setTimeout(handleUrlPinLocation, 500);
+    }
+});
+
+// DOM이 로드되면 실행
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+    initializeFilterOptions();
+    setupFilters();
+    
+    // 모든 핀 생성
+    pinsData.forEach(pinData => createPin(pinData.x, pinData.y, pinData));
+    
+    // 최초 실행 시 1순위 핀만 표시
+    filterPins2();
+    
+    // 불필요한 필터 적용 버튼 제거
+    const applyButton = document.getElementById('apply-filters');
+    if (applyButton) {
+        applyButton.remove();
+    }
+});
 
 document.addEventListener('contextmenu', function(event) {
     event.preventDefault();  // 우클릭 방지
