@@ -2167,20 +2167,27 @@ function initializeMap() {
     updateMapTransform();
 }
 
-// URL에서 검색어 파라미터를 가져오는 함수
-function getSearchTermFromURL() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('search') || ''; // 'search' 파라미터가 없으면 빈 문자열 반환
+// URL 경로에서 검색어를 추출하는 함수
+function getSearchTermFromPath() {
+    // URL의 경로 부분을 가져옴
+    const path = decodeURIComponent(window.location.pathname);
+    
+    // 마지막 경로 세그먼트를 추출 (예: "/DIMAMAP/C3 스튜디오" -> "C3 스튜디오")
+    const searchTerm = path.split('/').pop();
+    
+    return searchTerm || '';
 }
 
 // 검색어와 일치하는 핀을 찾고 표시하는 함수
-function handleURLSearch() {
-    const searchTerm = getSearchTermFromURL().toLowerCase();
+function handlePathSearch() {
+    const searchTerm = getSearchTermFromPath().toLowerCase();
     if (!searchTerm) return;
 
     // 검색어를 검색창에 설정
     const searchInput = document.getElementById('search-input');
-    searchInput.value = searchTerm;
+    if (searchInput) {
+        searchInput.value = searchTerm;
+    }
 
     // 검색어와 관련된 핀 찾기
     const matchedPins = pinsData.filter(pin => {
@@ -2192,11 +2199,7 @@ function handleURLSearch() {
             pin.floor
         ].map(field => field ? field.toLowerCase() : '');
 
-        // 검색어를 공백으로 분리하여 각각 확인
-        const searchTerms = searchTerm.split(/\s+/);
-        return searchTerms.every(term => 
-            searchFields.some(field => field.includes(term))
-        );
+        return searchFields.some(field => field.includes(searchTerm));
     });
 
     if (matchedPins.length > 0) {
@@ -2226,38 +2229,43 @@ function handleURLSearch() {
 
         // 검색 결과 표시
         const searchResults = document.getElementById('search-results');
-        searchResults.innerHTML = '';
-        matchedPins.forEach(pin => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'search-result-item';
-            resultItem.innerHTML = `
-                <div><strong>${pin.name}</strong></div>
-                <div>${pin.building} ${pin.floor || ''}</div>
-            `;
-            resultItem.addEventListener('click', () => {
-                const pinObj = pins.find(p => 
-                    p.coordinates.x == pin.x && 
-                    p.coordinates.y == pin.y
-                );
-                if (pinObj) {
-                    moveToPin(pinObj.pin);
-                    showPinInfoBox(pinObj.pin, pin);
-                }
+        if (searchResults) {
+            searchResults.innerHTML = '';
+            matchedPins.forEach(pin => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
+                    <div><strong>${pin.name}</strong></div>
+                    <div>${pin.building} ${pin.floor || ''}</div>
+                `;
+                resultItem.addEventListener('click', () => {
+                    const pinObj = pins.find(p => 
+                        p.coordinates.x == pin.x && 
+                        p.coordinates.y == pin.y
+                    );
+                    if (pinObj) {
+                        moveToPin(pinObj.pin);
+                        showPinInfoBox(pinObj.pin, pin);
+                    }
+                });
+                searchResults.appendChild(resultItem);
             });
-            searchResults.appendChild(resultItem);
-        });
-        searchResults.style.display = 'block';
+            searchResults.style.display = 'block';
+        }
+    } else {
+        // 일치하는 핀이 없을 경우 모든 핀 표시
+        filterPins2();
     }
 }
 
-// 페이지 로드 시 URL 검색 처리
+// 페이지 로드 시 경로 기반 검색 처리
 document.addEventListener('DOMContentLoaded', function() {
-    handleURLSearch();
+    handlePathSearch();
 });
 
-// 브라우저 히스토리 변경 시 URL 검색 처리 (뒤로가기/앞으로가기 대응)
+// 브라우저 히스토리 변경 시 경로 기반 검색 처리
 window.addEventListener('popstate', function() {
-    handleURLSearch();
+    handlePathSearch();
 });
 
 // 필터 설정
