@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DIMA MAP</title>
     <style>
         /* 기본 스타일 */
@@ -1665,6 +1665,7 @@ mapContainer.addEventListener('touchstart', function(e) {
     isTouching = true;
     
     if (e.touches.length === 1) {
+        e.preventDefault();  // 기본 iOS 확대 방지
         // 싱글 터치 (이동)
         const touch = e.touches[0];
         lastTouchX = touch.clientX;
@@ -1700,6 +1701,11 @@ mapContainer.addEventListener('touchstart', function(e) {
         );
         initialPinchScale = currentScale;
     }
+});
+
+// IOS 터치방지
+document.addEventListener('gesturestart', function (e) {
+    e.preventDefault(); // iOS Safari 기본 확대 방지
 });
 
 // 터치 이동 이벤트 핸들러
