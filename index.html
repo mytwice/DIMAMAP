@@ -1413,6 +1413,11 @@ function showExitButton() {
         const floorButtonsContainer = exitButton.querySelector('.floor-buttons-container');
         floorButtonsContainer.innerHTML = '';
 
+        // **층 정보가 없을 경우, 컨테이너 초기화 후 종료**
+        if (buildingFloors.length === 0) {
+            return;
+        }
+
         // Keep track of the currently selected floor button
         let selectedButton = null;
 
