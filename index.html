@@ -917,6 +917,7 @@ const pinsData = [
     "y": "418.20",
     "building": "기예관",
     "floor": "4층",
+    "number": "010-0000-0000",
     "category": "실습실",
     "name": "개방편집실",
     "description": "들어가면 못 빠져나올지도",
@@ -1093,6 +1094,7 @@ searchInput.addEventListener('input', function() {
         pin.name.toLowerCase().includes(searchTerm) ||
         pin.building.toLowerCase().includes(searchTerm) ||
         pin.description.toLowerCase().includes(searchTerm)
+        pin.number.toLowerCase().includes(searchTerm)
     );
 
     searchResults.innerHTML = '';
@@ -1546,6 +1548,7 @@ function showPinInfoBox(pin, pinData) {
     // 값이 있는 항목만 표시하도록 수정
     const info = [];
     if (pinData.name) info.push(`<strong>이름:</strong> ${pinData.name}`);
+    if (pinData.number) info.push(`<strong>연락처:</strong> ${pinData.number}`);
     if (pinData.building) info.push(`<strong>건물:</strong> ${pinData.building}`);
     if (pinData.floor) info.push(`<strong>층:</strong> ${pinData.floor}`);
     if (pinData.category) info.push(`<strong>카테고리:</strong> ${pinData.category}`);
