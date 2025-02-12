@@ -317,7 +317,12 @@
         </div>
 
         <div class="form-group">
-            <label for="address">주소:</label>
+            <label for="number">연락처:</label>
+            <input type="text" id="number" placeholder="연락처를 입력하세요">
+        </div>
+        
+        <div class="form-group">
+            <label for="address">인터넷 주소:</label>
             <input type="text" id="address" placeholder="주소를 입력하세요">
         </div>
 
@@ -450,6 +455,7 @@ mapWrapper.addEventListener('click', (e) => {
         category: '',
         name: '',
         description: '',
+        number: '',        
         address: '',
         priority: '없음'
     });
@@ -520,6 +526,7 @@ function selectPin(pin) {
     document.getElementById('category-select').value = pinData.category || '';
     document.getElementById('pin-name').value = pinData.name || '';
     document.getElementById('location-description').value = pinData.description || '';
+    document.getElementById('number').value = pinData.number || '';    
     document.getElementById('address').value = pinData.address || '';
     document.getElementById('priority-select').value = pinData.priority || '없음';
 
@@ -532,6 +539,7 @@ function selectPin(pin) {
         pinData.category = document.getElementById('category-select').value;
         pinData.name = document.getElementById('pin-name').value;
         pinData.description = document.getElementById('location-description').value;
+        pinData.number = document.getElementById('number').value;
         pinData.address = document.getElementById('address').value;
         pinData.priority = document.getElementById('priority-select').value;
         
