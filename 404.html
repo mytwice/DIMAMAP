@@ -3316,21 +3316,29 @@ function setupFilters() {
 
 function handleUrlPinLocation() {
     const path = window.location.pathname;
-    const locationName = decodeURIComponent(path.split('/').pop()).trim();
+    const locationName = decodeURIComponent(path.split('/').pop());
     const searchTerm = locationName.toLowerCase();
-    console.log("URL에서 추출한 위치:", locationName, "검색어:", searchTerm);
 
-    // name, building, address 필드 모두에서 부분 문자열 검색
-    const matchedPin = pinsData.find(pin => {
-        const name = pin.name ? pin.name.toLowerCase() : "";
-        const building = pin.building ? pin.building.toLowerCase() : "";
-        const address = pin.address ? pin.address.toLowerCase() : "";
-        return name.includes(searchTerm) || building.includes(searchTerm) || address.includes(searchTerm);
-    });
+    // 1단계: 전체 검색어로 핀 검색
+    let matchedPin = pinsData.find(pin => 
+        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
+        (pin.building && pin.building.toLowerCase().includes(searchTerm))
+    );
+
+    // 2단계: 전체 검색어로 찾지 못했을 경우, 마지막 단어로 재검색
+    if (!matchedPin) {
+        const tokens = searchTerm.split(' ');
+        if (tokens.length > 1) {
+            const lastToken = tokens[tokens.length - 1];
+            matchedPin = pinsData.find(pin =>
+                (pin.name && pin.name.toLowerCase().includes(lastToken)) ||
+                (pin.building && pin.building.toLowerCase().includes(lastToken))
+            );
+        }
+    }
 
     if (matchedPin) {
-        console.log("매칭된 핀:", matchedPin);
-        // 모든 핀 숨기기
+        // 모든 핀을 숨김
         pins.forEach(p => {
             p.pin.style.display = 'none';
         });
@@ -3341,7 +3349,7 @@ function handleUrlPinLocation() {
         );
 
         if (pinObj) {
-            // 해당 핀만 표시 및 강조
+            // 해당 핀만 표시하고 강조
             pinObj.pin.style.display = 'block';
             pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
             pinObj.pin.style.zIndex = '1001';
@@ -3349,7 +3357,7 @@ function handleUrlPinLocation() {
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
 
-            // 전체 지도보기 버튼 생성
+            // 전체 지도보기 버튼 생성 (선택 사항)
             const viewAllButton = document.createElement('button');
             viewAllButton.innerText = '전체 지도 보기';
             viewAllButton.style.cssText = `
@@ -3369,35 +3377,23 @@ function handleUrlPinLocation() {
             `;
             
             viewAllButton.addEventListener('click', () => {
-                // 모든 핀 표시 및 강조 효과 제거
+                // 전체 핀 표시 및 강조 효과 제거
                 pinObj.pin.style.transform = 'translate(-50%, -95%)';
                 pinObj.pin.style.filter = 'none';
-                filterPins2(); // 1순위와 3순위 핀 표시
-                
+                filterPins2();
                 if (activeInfoBox) {
                     activeInfoBox.style.display = 'none';
                 }
-                
                 viewAllButton.remove();
             });
             
             document.body.appendChild(viewAllButton);
         }
     } else {
-        console.log("매칭되는 핀이 없습니다.");
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
 
-
-document.addEventListener('DOMContentLoaded', function() {
-    const pathParts = window.location.pathname.split('/');
-    const locationName = pathParts[pathParts.length - 1];
-    
-    if (locationName && locationName !== 'DIMAMAP') {
-        setTimeout(handleUrlPinLocation, 500);
-    }
-});
 
 // DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
