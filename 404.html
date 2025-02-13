@@ -3316,15 +3316,15 @@ function setupFilters() {
 
 function handleUrlPinLocation() {
     const path = window.location.pathname;
-    const locationName = decodeURIComponent(path.split('/').pop()).toLowerCase().trim();
-    // 검색어를 공백 기준으로 분할 (예: "야외공연장" -> ["야외공연장"], "동아 야외공연장" -> ["동아", "야외공연장"])
-    const searchTerms = locationName.split(/\s+/).filter(Boolean);
+    const locationName = decodeURIComponent(path.split('/').pop());
+    // 검색어를 소문자로 변환 (예: "야외공연장")
+    const searchTerm = locationName.toLowerCase();
 
-    // 모든 단어가 핀의 이름 또는 건물명에 포함되어 있는지 확인
-    const matchedPin = pinsData.find(pin => {
-        const haystack = ((pin.name || "") + " " + (pin.building || "")).toLowerCase();
-        return searchTerms.every(term => haystack.includes(term));
-    });
+    // pin.name이나 pin.building에 searchTerm이 부분 포함되어 있는지 검사합니다.
+    const matchedPin = pinsData.find(pin => 
+        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
+        (pin.building && pin.building.toLowerCase().includes(searchTerm))
+    );
 
     if (matchedPin) {
         // 모든 핀 숨기기
@@ -3338,9 +3338,8 @@ function handleUrlPinLocation() {
         );
 
         if (pinObj) {
-            // 해당 핀만 표시
+            // 해당 핀만 표시 및 강조
             pinObj.pin.style.display = 'block';
-            // 핀 강조 스타일 적용
             pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
             pinObj.pin.style.zIndex = '1001';
             
@@ -3372,19 +3371,16 @@ function handleUrlPinLocation() {
                 pinObj.pin.style.filter = 'none';
                 filterPins2(); // 1순위와 3순위 핀 표시
                 
-                // 정보창 닫기
                 if (activeInfoBox) {
                     activeInfoBox.style.display = 'none';
                 }
                 
-                // 버튼 제거
                 viewAllButton.remove();
             });
             
             document.body.appendChild(viewAllButton);
         }
     } else {
-        // 검색어와 일치하는 핀이 없을 경우
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
