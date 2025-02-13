@@ -15,6 +15,30 @@
             overflow: hidden; /* 페이지에서 스크롤바를 숨깁니다 */
         }
 
+        /* 스크롤바 전체 영역 */
+        ::-webkit-scrollbar {
+            width: 18px;  /* 세로 스크롤바 너비 */
+            height: 15px; /* 가로 스크롤바 높이 */
+        }
+
+        /* 스크롤바 배경 */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; /* 밝은 회색 */
+            border-radius: 10px;
+        }
+
+        /* 스크롤바 막대 (드래그 가능) */
+        ::-webkit-scrollbar-thumb {
+            background: #e155b5; /* 핑크 계열 색상 */
+            border-radius: 35px;
+            border: 2px solid #f1f1f1; /* 배경과 조화롭게 */
+        }
+
+        /* 스크롤바 호버 효과 */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c64aa3; /* 더 진한 핑크 */
+        }
+
         #map-wrapper {
             width: 100%;
             height: 100%;
@@ -202,7 +226,7 @@
             border-radius: 50%; /* Circular shape */
             border: 1px solid white; /* White border */
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow */
-            transform: translate(-50%, -50%) scale(0.26);; /* Center the pin */
+            transform: translate(-50%, -50%) scale(0.26); /* Center the pin */
             z-index: 1000; /* Ensure it's above other elements */
         }
 
@@ -228,7 +252,7 @@
             color: white;
             padding: 5px 10px;
             font-size: 7px;
-            transform: translate(20%, -46%);
+            transform: translate(110%, -39%) scale(2.2);
             border-radius: 5px;
             white-space: nowrap;
             text-align: center;
@@ -747,7 +771,7 @@
     <div class="popup-content">
         <span class="close">&times;</span>
         <h2>제보/정보</h2>
-        <p style="word-break: keep-all;">정보는 대학 홈페이지를 기반으로 하며 잘못된 정보가 있을 수 있습니다</p>
+        <p style="word-break: keep-all;">정보는 대학 홈페이지와 표지판을 기반으로 하며 잘못된 정보가 있을 수 있습니다</p>
         <p style="word-break: keep-all;">잘못된 정보나 추가할 사항이 있을 경우에 언제든 연락주세요!</p>
         <p>제작 : I DIMA 프로젝트</p>
         <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
@@ -1962,7 +1986,7 @@ const pinsData = [
     "description": "",
     "number": "",
     "link": "",
-    "priority": "3순위"
+    "priority": "1순위"
   },
   {
     "id": "1739358319438",
@@ -1976,7 +2000,7 @@ const pinsData = [
     "description": "",
     "number": "",
     "link": "",
-    "priority": "3순위"
+    "priority": "1순위"
   },
   {
     "id": "1739358335861",
@@ -1990,7 +2014,7 @@ const pinsData = [
     "description": "",
     "number": "",
     "link": "",
-    "priority": "3순위"
+    "priority": "1순위"
   },
   {
     "id": "1739358778828",
@@ -2396,23 +2420,30 @@ function createPin(x, y, details = {}) {
         }, 2000); // 2초 후 자동 숨김
     });
 
-    // 클릭 이벤트 핸들러
+    let lastPrimaryPinPosition = null;
+
     const handlePinInteraction = function(e) {
-        e.stopPropagation();
+    e.stopPropagation();
 
-        // 1순위 핀을 클릭했을 때 안내창을 뜨지 않게 처리
-        if (details.priority === "1순위") {
-            showPriorityPins(details.building); // 같은 건물의 2순위 핀을 표시
-            showExitButton(); // Exit button appears when 2순위 pins are shown
-            if (activeInfoBox) {
-                activeInfoBox.style.display = 'none';
-            }
-        } else {
-            // 2순위 핀만 안내창을 표시
-            showPinInfoBox(pin, details);
+    if (details.priority === "1순위") {
+        lastPrimaryPinPosition = { x: pin.offsetLeft, y: pin.offsetTop }; // 1순위 핀 위치 저장
+        moveToPin(pin); // 해당 위치로 확대 이동
+        showPriorityPins(details.building);
+        showExitButton();
+        // 원하는 확대 레벨 설정 (예: 3배 확대)
+        const targetScale = 18;
+        // 화면(맵 wrapper)의 크기를 가져옵니다.
+        const wrapperWidth = mapWrapper.offsetWidth;
+        const wrapperHeight = mapWrapper.offsetHeight;
+        // 부드러운 확대 및 중앙 이동: 중앙 좌표를 기준으로 smoothZoom 호출
+        smoothZoom(targetScale, wrapperWidth / 2, wrapperHeight / 2);
+        if (activeInfoBox) {
+            activeInfoBox.style.display = 'none';
         }
-    };
-
+    } else {
+        showPinInfoBox(pin, details);
+    }
+};
     // 데스크톱 클릭 이벤트
     pin.addEventListener('click', handlePinInteraction);
     
@@ -2630,7 +2661,6 @@ function showOnlyFirstPriorityPins() {
         }
     });
 }
-
 
 // 핀 정보창 표시 함수
 function showPinInfoBox(pin, pinData) {
@@ -3317,15 +3347,25 @@ function setupFilters() {
 function handleUrlPinLocation() {
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
-
-    // 검색어를 소문자로 변환
     const searchTerm = locationName.toLowerCase();
 
-    // includes()를 사용하여 부분 문자열 검색
-    const matchedPin = pinsData.find(pin => 
+    // 1단계: 전체 검색어로 핀 검색
+    let matchedPin = pinsData.find(pin => 
         (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
         (pin.building && pin.building.toLowerCase().includes(searchTerm))
     );
+
+    // 2단계: 전체 검색어로 찾지 못했을 경우, 마지막 단어로 재검색
+    if (!matchedPin) {
+        const tokens = searchTerm.split(' ');
+        if (tokens.length > 1) {
+            const lastToken = tokens[tokens.length - 1];
+            matchedPin = pinsData.find(pin =>
+                (pin.name && pin.name.toLowerCase().includes(lastToken)) ||
+                (pin.building && pin.building.toLowerCase().includes(lastToken))
+            );
+        }
+    }
 
     if (matchedPin) {
         // 모든 핀을 숨김
@@ -3339,17 +3379,15 @@ function handleUrlPinLocation() {
         );
 
         if (pinObj) {
-            // 해당 핀만 표시
+            // 해당 핀만 표시하고 강조
             pinObj.pin.style.display = 'block';
-            
-            // 핀 강조 스타일 적용
             pinObj.pin.style.transform = 'translate(-50%, -95%) scale(1.5)';
             pinObj.pin.style.zIndex = '1001';
             
             moveToPin(pinObj.pin);
             showPinInfoBox(pinObj.pin, matchedPin);
 
-            // 전체 지도보기 버튼 생성
+            // 전체 지도보기 버튼 생성 (선택 사항)
             const viewAllButton = document.createElement('button');
             viewAllButton.innerText = '전체 지도 보기';
             viewAllButton.style.cssText = `
@@ -3369,27 +3407,23 @@ function handleUrlPinLocation() {
             `;
             
             viewAllButton.addEventListener('click', () => {
-                // 모든 핀 표시 및 강조 효과 제거
+                // 전체 핀 표시 및 강조 효과 제거
                 pinObj.pin.style.transform = 'translate(-50%, -95%)';
                 pinObj.pin.style.filter = 'none';
-                filterPins2(); // 1순위와 3순위 핀 표시
-                
-                // 정보창 닫기
+                filterPins2();
                 if (activeInfoBox) {
                     activeInfoBox.style.display = 'none';
                 }
-                
-                // 버튼 제거
                 viewAllButton.remove();
             });
             
             document.body.appendChild(viewAllButton);
         }
     } else {
-        // 검색어와 일치하는 핀이 없을 경우
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const pathParts = window.location.pathname.split('/');
