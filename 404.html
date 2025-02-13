@@ -196,13 +196,13 @@
         /* 2순위 핀 스타일 - 원형 */
         .pin-secondary {
             position: absolute; /* Ensure absolute positioning */
-            width: 1px; /* Fixed width */
-            height: 1px; /* Fixed height */
+            width: 10px; /* Fixed width */
+            height: 10px; /* Fixed height */
             background-color: #E91E63; /* Pink color */
             border-radius: 50%; /* Circular shape */
             border: 1px solid white; /* White border */
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow */
-            transform: translate(-50%, -50%); /* Center the pin */
+            transform: translate(-50%, -50%) scale(0.26); /* Center the pin */
             z-index: 1000; /* Ensure it's above other elements */
         }
 
@@ -228,7 +228,7 @@
             color: white;
             padding: 5px 10px;
             font-size: 7px;
-            transform: translate(20%, -46%);
+            transform: translate(110%, -39%) scale(2.2);
             border-radius: 5px;
             white-space: nowrap;
             text-align: center;
@@ -747,6 +747,7 @@
     <div class="popup-content">
         <span class="close">&times;</span>
         <h2>제보/정보</h2>
+        <p style="word-break: keep-all;">정보는 대학 홈페이지를 기반으로 하며 잘못된 정보가 있을 수 있습니다</p>
         <p style="word-break: keep-all;">잘못된 정보나 추가할 사항이 있을 경우에 언제든 연락주세요!</p>
         <p>제작 : I DIMA 프로젝트</p>
         <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
@@ -792,256 +793,1372 @@ const mapConfig = {
 // 핀 데이터
 const pinsData = [
   {
-    "id": "1738332945823",
-    "x": "539.20",
-    "y": "161.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "",
-    "description": "",
-    "address": "",
-    "priority": "없음"
-  },
-  {
-    "id": "1738332949708",
-    "x": "581.20",
-    "y": "420.20",
-    "building": "기예관",
-    "floor": "",
-    "category": "",
-    "name": "기예관",
-    "description": "",
-    "address": "",
-    "priority": "1순위"
-  },
-  {
-    "id": "1738332951394",
-    "x": "579.20",
-    "y": "443.20",
+    "id": "1739338815570",
+    "x": "600.26",
+    "y": "467.19",
     "building": "지성관",
     "floor": "",
     "category": "",
     "name": "지성관",
     "description": "",
+    "number": "",
     "address": "",
     "priority": "1순위"
   },
   {
-    "id": "1738332954413",
-    "x": "584.20",
-    "y": "391.20",
+    "id": "1739354323376",
+    "x": "599.82",
+    "y": "439.86",
+    "building": "기예관",
+    "floor": "",
+    "category": "",
+    "name": "기예관",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "1순위"
+  },
+  {
+    "id": "1739338828151",
+    "x": "599.21",
+    "y": "409.30",
     "building": "덕성관",
     "floor": "",
     "category": "",
     "name": "덕성관",
     "description": "",
+    "number": "",
     "address": "",
     "priority": "1순위"
   },
   {
-    "id": "1738332957269",
-    "x": "545.20",
-    "y": "503.20",
-    "building": "",
+    "id": "1739338831348",
+    "x": "601.32",
+    "y": "492.98",
+    "building": "대학본부",
+    "floor": "",
+    "category": "",
+    "name": "대학본부",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "1순위"
+  },
+  {
+    "id": "1739338835714",
+    "x": "559.21",
+    "y": "529.30",
+    "building": "체육관",
     "floor": "",
     "category": "",
     "name": "체육관",
     "description": "",
+    "number": "",
     "address": "",
     "priority": "1순위"
   },
   {
-    "id": "1738332961017",
-    "x": "573.20",
-    "y": "495.20",
-    "building": "",
-    "floor": "",
-    "category": "정류장",
-    "name": "운동장 정류소",
-    "description": "",
-    "address": "",
-    "priority": "3순위"
-  },
-  {
-    "id": "1738332964340",
-    "x": "634.20",
-    "y": "479.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "야외공연장",
-    "description": "한번도 공연하는걸못본 공연장",
-    "address": "",
-    "priority": "3순위"
-  },
-  {
-    "id": "1738333075127",
-    "x": "605.20",
-    "y": "388.20",
-    "building": "덕성관",
-    "floor": "4층",
-    "category": "실습실",
-    "name": "C3 스튜디오",
-    "description": "각종 생방송이 제작되는 중형스튜디오",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333078150",
-    "x": "567.20",
-    "y": "394.20",
-    "building": "덕성관",
-    "floor": "2층",
-    "category": "강의실",
-    "name": "40201 강의실",
-    "description": "교실형 빔프로젝트 강의실",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333085774",
-    "x": "609.20",
-    "y": "414.20",
-    "building": "기예관",
-    "floor": "1층",
-    "category": "실습실",
-    "name": "40202 강의실",
-    "description": "거대한 스튜디오",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333087372",
-    "x": "617.20",
-    "y": "418.20",
-    "building": "기예관",
-    "floor": "4층",
-    "category": "실습실",
-    "name": "개방편집실",
-    "description": "들어가면 못 빠져나올지도",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333095196",
-    "x": "600.20",
-    "y": "420.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "",
-    "description": "",
-    "address": "",
-    "priority": "없음"
-  },
-  {
-    "id": "1738333100871",
-    "x": "561.20",
-    "y": "440.20",
-    "building": "지성관",
-    "floor": "4층",
-    "category": "교수연구실",
-    "name": "연구실",
-    "description": "가면 못 빠져나올지도",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333107596",
-    "x": "557.20",
-    "y": "467.20",
-    "building": "",
-    "floor": "",
-    "category": "도서관부속시설",
-    "name": "도서관",
-    "description": "암튼 전문대 순위권 도서관",
-    "address": "https://lib.dima.ac.kr/",
-    "priority": "3순위"
-  },
-  {
-    "id": "1738333116090",
-    "x": "587.20",
-    "y": "141.20",
-    "building": "예인관",
-    "floor": "B1층",
-    "category": "편의시설",
-    "name": "GS25 편의점",
-    "description": "",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333131234",
-    "x": "544.20",
-    "y": "151.20",
-    "building": "",
-    "floor": "",
-    "category": "",
-    "name": "",
-    "description": "",
-    "address": "",
-    "priority": "없음"
-  },
-  {
-    "id": "1738333143140",
-    "x": "607.20",
-    "y": "446.20",
-    "building": "지성관",
-    "floor": "2층",
-    "category": "공연시설",
-    "name": "콘서트홀",
-    "description": "소형규모의 공연장",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333146582",
-    "x": "616.20",
-    "y": "461.20",
-    "building": "지성관",
-    "floor": "5층",
-    "category": "행정시설",
-    "name": "학생회실",
-    "description": "들어가보고 싶다",
-    "address": "",
-    "priority": "2순위"
-  },
-  {
-    "id": "1738333412722",
-    "x": "605.20",
-    "y": "512.20",
-    "building": "",
-    "floor": "",
-    "category": "체육시설",
-    "name": "운동장",
-    "description": "",
-    "address": "",
-    "priority": "3순위"
-  },
-  {
-    "id": "1738333439589",
-    "x": "605.20",
-    "y": "454.20",
+    "id": "1739338840600",
+    "x": "656.58",
+    "y": "510.35",
     "building": "",
     "floor": "실외",
-    "category": "편의시설",
-    "name": "한울마당",
-    "description": "모두의 쉼터 한울마당!",
+    "category": "체육시설",
+    "name": "야외공연장",
+    "description": "예술대학에 걸맞는 대형 공연을 할수 있도록 1,100석 규모의 야외 공연장으로 각종 축제, 공연, 동아리 활동 등 대규모공연을 준비, 제작, 관람하는곳입니다.",
+    "number": "",
     "address": "",
-    "priority": "3순위"
+    "priority": "3순위",
+    "link": ""
   },
   {
-    "id": "1738461992899",
-    "x": "574.80",
-    "y": "137.20",
+    "id": "1739338860720",
+    "x": "615.53",
+    "y": "662.63",
+    "building": "시외버스정류소",
+    "floor": "",
+    "category": "",
+    "name": "시외버스정류장",
+    "description": "강남방면 4402와 시외버스를 이용할 수 있는 정류장, 셔틀버스 미정차",
+    "number": "",
+    "address": "",
+    "priority": "1순위"
+  },
+  {
+    "id": "1739338879762",
+    "x": "588.16",
+    "y": "125.96",
     "building": "예인관",
     "floor": "",
     "category": "",
     "name": "예인관",
     "description": "",
+    "number": "",
     "address": "",
+    "priority": "1순위",
+    "link": ""
+  },
+  {
+    "id": "1739338899793",
+    "x": "491.84",
+    "y": "235.88",
+    "building": "DIMA 종합촬영소",
+    "floor": "",
+    "category": "",
+    "name": "DIMA 종합촬영소",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "1순위",
+    "link": ""
+  },
+  {
+    "id": "1739338938011",
+    "x": "556.05",
+    "y": "150.61",
+    "building": "엔터테인먼트관",
+    "floor": "",
+    "category": "",
+    "name": "엔터테인먼트관",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "1순위",
+    "link": ""
+  },
+  {
+    "id": "1739338940878",
+    "x": "532.89",
+    "y": "170.09",
+    "building": "디자인센터",
+    "floor": "",
+    "category": "",
+    "name": "디자인센터",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "1순위",
+    "link": ""
+  },
+  {
+    "id": "1739339088514",
+    "x": "622.37",
+    "y": "545.35",
+    "building": "",
+    "floor": "실외",
+    "category": "체육시설",
+    "name": "대운동장",
+    "description": "국제규격에 준하는 인조잔디 구장과 우레탄 트랙, 농구장 등이 조성되어 날씨에 상관없이 안전하게 체육활동을 즐길 수 있습니다.",
+    "number": "",
+    "address": "",
+    "priority": "3순위",
+    "link": ""
+  },
+  {
+    "id": "1739339150584",
+    "x": "678.11",
+    "y": "757.50",
+    "building": "",
+    "floor": "",
+    "category": "정류장",
+    "name": "원룸촌 정류장",
+    "description": "4402 하차외 내부 셔틀버스를 이용할 ㅅ ㅜ있는 정류장",
+    "number": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739339490339",
+    "x": "584.28",
+    "y": "519.56",
+    "building": "",
+    "floor": "실외",
+    "category": "정류장",
+    "name": "운동장 정류장",
+    "description": "18시 이후 운영하는 정류장",
+    "number": "",
+    "address": "",
+    "priority": "3순위",
+    "link": ""
+  },
+  {
+    "id": "1739339524052",
+    "x": "588.94",
+    "y": "385.78",
+    "building": "",
+    "floor": "실외",
+    "category": "정류장",
+    "name": "덕성관삼거리 정류장",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "3순위",
+    "link": ""
+  },
+  {
+    "id": "1739339552981",
+    "x": "573.28",
+    "y": "168.44",
+    "building": "",
+    "floor": "실외",
+    "category": "정류장",
+    "name": "디자인센터 정류장",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "3순위",
+    "link": ""
+  },
+  {
+    "id": "1739339781162",
+    "x": "704.06",
+    "y": "870.05",
+    "building": "",
+    "floor": "",
+    "category": "정류장",
+    "name": "동아방송예술대학교입구(도촌방면)",
+    "description": "4402와 시내버스를 이용할 수 있는 정류장",
+    "number": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739339885231",
+    "x": "739.72",
+    "y": "867.78",
+    "building": "",
+    "floor": "",
+    "category": "정류장",
+    "name": "동아방송예술대학교입구(라촌방면)",
+    "description": "이천방면 8203와 시내버스를 이용할 수 있는 정류장",
+    "number": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739340188989",
+    "x": "683.20",
+    "y": "191.27",
+    "building": "",
+    "floor": "",
+    "category": "경비실",
+    "name": "후문경비실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739340233722",
+    "x": "644.20",
+    "y": "722.60",
+    "building": "",
+    "floor": "",
+    "category": "경비실",
+    "name": "정문경비실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739340263459",
+    "x": "624.20",
+    "y": "163.07",
+    "building": "",
+    "floor": "실외",
+    "category": "체육시설",
+    "name": "농구장",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "3순위",
+    "link": ""
+  },
+  {
+    "id": "1739340496450",
+    "x": "659.87",
+    "y": "553.27",
+    "building": "",
+    "floor": "실외",
+    "category": "체육시설",
+    "name": "농구장",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "3순위",
+    "link": ""
+  },
+  {
+    "id": "1739340528109",
+    "x": "601.20",
+    "y": "509.27",
+    "building": "",
+    "floor": "실외",
+    "category": "정류장",
+    "name": "대학본부 정류장",
+    "description": "A노선과 B노선 환승이 가능한 장류장",
+    "number": "",
+    "address": "",
+    "priority": "3순위",
+    "link": ""
+  },
+  {
+    "id": "1739340738053",
+    "x": "571.86",
+    "y": "493.71",
+    "building": "대학본부",
+    "floor": "1층",
+    "category": "도서관시설",
+    "name": "리더스스테이션",
+    "description": "1,2층에 걸친 도서관",
+    "number": "031-670-6665",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://lib.dima.ac.kr/"
+  },
+  {
+    "id": "1739340915610",
+    "x": "576.02",
+    "y": "494.81",
+    "building": "대학본부",
+    "floor": "1층",
+    "category": "화장실",
+    "name": "화장실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739340949258",
+    "x": "568.68",
+    "y": "493.49",
+    "building": "대학본부",
+    "floor": "3층",
+    "category": "도서관시설",
+    "name": "러닝라운지",
+    "description": "자기주도학습, 협업, 소통, 나눔, 비교과 학습 프로그램 운영 등 가능한 공간",
+    "number": "031-670-6666",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://lib.dima.ac.kr/"
+  },
+  {
+    "id": "1739341081334",
+    "x": "612.99",
+    "y": "494.19",
+    "building": "대학본부",
+    "floor": "1층",
+    "category": "전시시설",
+    "name": "20주년 기념홀",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739341130039",
+    "x": "608.99",
+    "y": "491.52",
+    "building": "대학본부",
+    "floor": "1층",
+    "category": "화장실",
+    "name": "화장실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739341225532",
+    "x": "623.32",
+    "y": "481.19",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "한울마당",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739341251194",
+    "x": "625.99",
+    "y": "476.52",
+    "building": "지성관",
+    "floor": "1층",
+    "category": "편의시설",
+    "name": "세븐일레븐",
+    "description": "",
+    "number": "031-672-5731",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739341337517",
+    "x": "629.32",
+    "y": "478.52",
+    "building": "지성관",
+    "floor": "1층",
+    "category": "편의시설",
+    "name": "라감커피",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739345098868",
+    "x": "622.65",
+    "y": "468.56",
+    "building": "지성관",
+    "floor": "2층",
+    "category": "편의시설",
+    "name": "학생식당",
+    "description": "학생 식당은 학생 및 교직원들의 건강한 식생활을 위해 종합식품전문기업의 체계적이고 효율적인 운영시스템을 도입하여 저렴한 가격, 양질의 식사, 최상의 서비스를 제공하고 있습니다.",
+    "number": "",
+    "address": "20207",
+    "priority": "2순위",
+    "link": "https://www.dima.ac.kr/?p=93"
+  },
+  {
+    "id": "1739345155723",
+    "x": "621.99",
+    "y": "470.23",
+    "building": "지성관",
+    "floor": "1층",
+    "category": "",
+    "name": "동아쉼터",
+    "description": "취식이 가능한 휴게실",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": ""
+  },
+  {
+    "id": "1739345182077",
+    "x": "623.99",
+    "y": "468.56",
+    "building": "지성관",
+    "floor": "1층",
+    "category": "화장실",
+    "name": "화장실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739345231639",
+    "x": "626.99",
+    "y": "470.88",
+    "building": "지성관",
+    "floor": "3층",
+    "category": "공연시설",
+    "name": "콘서트홀",
+    "description": "학생들이 연극, 공연, 합주 등의 무대를 펼치는 장소로 각각의 공연을 특성에 맞춰 조명, 음향, LED 디스플레이 시스템, 중계 및 송출 등의 다양한 장비 세팅을 구성할 수 있으며 DIMA TV에 방영 중인 화요콘서트 제작을 하는 공간",
+    "number": "",
+    "address": "20317",
+    "priority": "2순위",
+    "link": "https://www.dima.ac.kr/?p=140"
+  },
+  {
+    "id": "1739345324835",
+    "x": "606.65",
+    "y": "468.88",
+    "building": "지성관",
+    "floor": "2층",
+    "category": "행정시설",
+    "name": "교무처/행정복지처",
+    "description": "지성관 2층 20205호",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739345423636",
+    "x": "615.65",
+    "y": "468.88",
+    "building": "지성관",
+    "floor": "2층",
+    "category": "",
+    "name": "우리은행 출장소",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739345626416",
+    "x": "596.99",
+    "y": "469.25",
+    "building": "지성관",
+    "floor": "2층",
+    "category": "행정시설",
+    "name": "입학관리팀/원격지원센터",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739345672691",
+    "x": "585.32",
+    "y": "469.58",
+    "building": "지성관",
+    "floor": "2층",
+    "category": "학생지원시설",
+    "name": "건강관리실",
+    "description": "이용대상 : 재학생 및 교직원\n이용시간 : 월~금 09:00 ~ 18:00(방학 중 단축근무에 준함)\n점심시간 : 12:00 ~ 13:00",
+    "number": "031-670-6667",
+    "address": "20202",
+    "priority": "2순위",
+    "link": "https://www.dima.ac.kr/?p=95"
+  },
+  {
+    "id": "1739345764202",
+    "x": "562.99",
+    "y": "535.90",
+    "building": "체육관",
+    "floor": "1층",
+    "category": "화장실",
+    "name": "화장실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739346547231",
+    "x": "617.86",
+    "y": "468.95",
+    "building": "지성관",
+    "floor": "2층",
+    "category": "학생지원시설",
+    "name": "무인 증명 발급기",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739346707657",
+    "x": "585.40",
+    "y": "467.73",
+    "building": "지성관",
+    "floor": "4층",
+    "category": "행정시설",
+    "name": "학과사무실(창의교양학부, 광고크리에이티브과, 방송콘텐츠제작과, 방송콘텐츠제작학과(전공심화)",
+    "description": "창의교양학부, 광고크리에이티브과, 방송콘텐츠제작과, 방송콘텐츠제작학과(전공심화)",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": ""
+  },
+  {
+    "id": "1739346862686",
+    "x": "597.40",
+    "y": "468.73",
+    "building": "지성관",
+    "floor": "4층",
+    "category": "행정시설",
+    "name": "교육혁신센터",
+    "description": "교수학습역량팀, 융복합교육팀",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://www.instagram.com/dima_ctl/"
+  },
+  {
+    "id": "1739346940087",
+    "x": "633.07",
+    "y": "485.73",
+    "building": "지성관",
+    "floor": "4층",
+    "category": "기관사무실",
+    "name": "총학생회",
+    "description": "장소 확인 후 이동 예정",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://www.instagram.com/dima_sisun_28/"
+  },
+  {
+    "id": "1739346993610",
+    "x": "609.40",
+    "y": "469.07",
+    "building": "지성관",
+    "floor": "3층",
+    "category": "기관사무실",
+    "name": "미디어센터(신문사)",
+    "description": "20315 PRESS 신문사 사무실",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://www.instagram.com/press_dima/"
+  },
+  {
+    "id": "1739347224438",
+    "x": "589.88",
+    "y": "469.18",
+    "building": "지성관",
+    "floor": "3층",
+    "category": "교수연구실",
+    "name": "강사연구실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739347457667",
+    "x": "628.88",
+    "y": "488.45",
+    "building": "지성관",
+    "floor": "4층",
+    "category": "기관사무실",
+    "name": "대의원회",
+    "description": "장소 확인 후 이동 예정",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://www.instagram.com/dima_representative_28th/"
+  },
+  {
+    "id": "1739347461841",
+    "x": "635.21",
+    "y": "483.12",
+    "building": "지성관",
+    "floor": "4층",
+    "category": "기관사무실",
+    "name": "동아리연합회",
+    "description": "장소 확인 후 이동 예정",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://www.instagram.com/dimawa_28th/"
+  },
+  {
+    "id": "1739347609863",
+    "x": "575.88",
+    "y": "462.45",
+    "building": "지성관",
+    "floor": "4중층",
+    "category": "",
+    "name": "중층 교수연구실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739347630654",
+    "x": "580.21",
+    "y": "467.79",
+    "building": "지성관",
+    "floor": "4중층",
+    "category": "개방열람실",
+    "name": "24시간 개방 자유열람실",
+    "description": "20중08",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://lib.dima.ac.kr/Common?html=/Users/Dacl/Docs/subguide01.cshtml"
+  },
+  {
+    "id": "1739347801985",
+    "x": "584.88",
+    "y": "468.79",
+    "building": "지성관",
+    "floor": "5층",
+    "category": "행정시설",
+    "name": "학과사무실(연극과, 디지털영상디자인과)",
+    "description": "연극과, 디지털영상디자인과",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739347863756",
+    "x": "580.54",
+    "y": "468.12",
+    "building": "지성관",
+    "floor": "5층",
+    "category": "개방열람실",
+    "name": "24시간 개방 자유열람실",
+    "description": "20509",
+    "number": "",
+    "address": "",
+    "priority": "2순위",
+    "link": "https://lib.dima.ac.kr/Common?html=/Users/Dacl/Docs/subguide01.cshtml"
+  },
+  {
+    "id": "1739347928176",
+    "x": "602.54",
+    "y": "469.12",
+    "building": "지성관",
+    "floor": "5층",
+    "category": "강의실",
+    "name": "511~513 강의실",
+    "description": "추후 세부 입력",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739347963714",
+    "x": "634.54",
+    "y": "485.45",
+    "building": "지성관",
+    "floor": "5층",
+    "category": "실습실",
+    "name": "리허설실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739348009311",
+    "x": "635.54",
+    "y": "486.12",
+    "building": "지성관",
+    "floor": "3층",
+    "category": "동아리실",
+    "name": "동아리실",
+    "description": "추후 세부 입력",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739348056937",
+    "x": "598.88",
+    "y": "466.79",
+    "building": "지성관",
+    "floor": "6층",
+    "category": "",
+    "name": "지성관 6층 추후 입력",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739348411396",
+    "x": "610.88",
+    "y": "656.85",
+    "building": "시외버스정류소",
+    "floor": "1층",
+    "category": "화장실",
+    "name": "화장실",
+    "description": "",
+    "number": "",
+    "address": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739348634444",
+    "x": "600.21",
+    "y": "442.06",
+    "building": "기예관",
+    "floor": "1층",
+    "category": "행정시설",
+    "name": "평생교육원",
+    "description": "동아방송예술대학교 평생교육원은 성인학습자를 대상으로 다양한 평생교육프로그램을 개발‧운영하고 있으며, 평생교육 프로그램 제공을 통해 개인의 삶의 질을 향상시키고, 자아실현을 달성하도록 도움을 주고 있습니다.",
+    "number": "",
+    "address": "30105",
+    "priority": "2순위",
+    "link": "https://lifelong.dima.ac.kr/"
+  },
+  {
+    "id": "1739348683407",
+    "x": "625.21",
+    "y": "436.73",
+    "building": "기예관",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "VIRTUAL 스튜디오",
+    "description": "VR(Virtual Reality, 가상현실), AR(Augmented Reality, 증강현실), MR(Mixed Reality, 혼합현실), XR(Extended Realit, 확장현실) 모션인식 등과 같은 특수 촬영에 적합한 스튜디오 이며 VizRT, Aximmetry 소프트웨어를 사용하여 VIRTUAL 영상제작 및 크로마키 합성작업이 가능한 실습실",
+    "number": "",
+    "address": "30120",
+    "priority": "2순위",
+    "link": "https://www.dima.ac.kr/?p=134"
+  },
+  {
+    "id": "1739348722021",
+    "x": "639.88",
+    "y": "448.40",
+    "building": "기예관",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "HDTV 스튜디오",
+    "description": "대학에 있는 TV 스튜디오로는 제일 큰 규모로 카메라 이동이 자유로워 다양한 구도의 촬영이 가능하며 소규모 쇼케이스, 세트 촬영 등을 HD로 촬영, 제작, 송출, 편집이 가능한 실습실이다.",
+    "number": "",
+    "address": "30111",
+    "priority": "2순위",
+    "link": "https://www.dima.ac.kr/?p=133"
+  },
+  {
+    "id": "1739348741359",
+    "x": "632.88",
+    "y": "442.73",
+    "building": "기예관",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "UHD 스튜디오",
+    "description": "실제 방송국과 유사하게 꾸며진 국내 대학기관 최초의 UHDTV 스튜디오로 4K 카메라를 사용하여 4K-12G, 2160 60P 영상물의 촬영 및 제작, 송출까지 할 수 있는 실습실",
+    "number": "",
+    "address": "30122",
+    "priority": "2순위",
+    "link": "https://www.dima.ac.kr/?p=132"
+  },
+  {
+    "id": "1739348911946",
+    "x": "605.88",
+    "y": "437.73",
+    "building": "기예관",
+    "floor": "1층",
+    "category": "학생지원시설",
+    "name": "창의실습지원센터",
+    "description": "운영 시간 : 09:00 – 21:00 (공휴일 전날 09:00 – 19:00)\n  * 점심시간 : 12:00 – 13:00 수업 관련 업무 한정 운영",
+    "number": "031-670-6635",
+    "address": "https://www.dima.ac.kr/?p=111&viewMode=view&reqIdx=2408220917215498",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739351782823",
+    "x": "584.83",
+    "y": "441.52",
+    "building": "기예관",
+    "floor": "3층",
+    "category": "행정시설",
+    "name": "학과사무실(방송극작과, 영상제작과)",
+    "address": "",
+    "description": "방송극작과, 영상제작과",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739351874304",
+    "x": "642.16",
+    "y": "448.86",
+    "building": "기예관",
+    "floor": "2층",
+    "category": "실습실",
+    "name": "HDTV 조정실",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739351882399",
+    "x": "642.16",
+    "y": "453.19",
+    "building": "기예관",
+    "floor": "2층",
+    "category": "",
+    "name": "FM방송국",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739352757560",
+    "x": "605.49",
+    "y": "441.52",
+    "building": "기예관",
+    "floor": "2층",
+    "category": "",
+    "name": "온택트 스튜디오",
+    "address": "30212",
+    "description": "비대면을 일컫는 Untact에 온라인을 통한 외부와의 연결(On)을 더한 개념으로 비대면 강의 등과 같은 교육 콘텐츠를 만들고 1인 방송 수업 및 제작에 최적화된 실습실",
+    "number": "",
+    "link": "https://www.dima.ac.kr/?p=139",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739352858154",
+    "x": "588.49",
+    "y": "441.86",
+    "building": "기예관",
+    "floor": "2층",
+    "category": "개방열람실",
+    "name": "24시간 개방 자유열람실",
+    "address": "30209",
+    "description": "",
+    "number": "",
+    "link": "https://lib.dima.ac.kr/Common?html=/Users/Dacl/Docs/subguide01.cshtml",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739352968920",
+    "x": "590.49",
+    "y": "441.52",
+    "building": "기예관",
+    "floor": "3층",
+    "category": "",
+    "name": "24시간 개방 자유열람실",
+    "address": "30309",
+    "description": "",
+    "number": "",
+    "link": "https://lib.dima.ac.kr/Common?html=/Users/Dacl/Docs/subguide01.cshtml",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739352995836",
+    "x": "590.83",
+    "y": "442.19",
+    "building": "기예관",
+    "floor": "4층",
+    "category": "개방열람실",
+    "name": "24시간 개방 자유열람실",
+    "address": "30409",
+    "description": "",
+    "number": "",
+    "link": "https://lib.dima.ac.kr/Common?html=/Users/Dacl/Docs/subguide01.cshtml",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739353352573",
+    "x": "584.82",
+    "y": "441.94",
+    "building": "기예관",
+    "floor": "3중층",
+    "category": "행정시설",
+    "name": "학과사무실(방송기술과, 방송기술학과, 뉴미디어콘텐츠과)",
+    "address": "30중08",
+    "description": "학과사무실(방송기술과, 방송기술학과, 뉴미디어콘텐츠과)",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739353503233",
+    "x": "585.16",
+    "y": "441.94",
+    "building": "기예관",
+    "floor": "4층",
+    "category": "행정시설",
+    "name": "학과사무실(음향제작과, 음향제작학과, 연기예술학과, 콘텐츠제작학과, 문화예술마케팅학과)",
+    "address": "",
+    "description": "학과사무실(음향제작과, 음향제작학과, 연기예술학과, 콘텐츠제작학과, 문화예술마케팅학과)",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739353582585",
+    "x": "595.82",
+    "y": "438.94",
+    "building": "기예관",
+    "floor": "5층",
+    "category": "",
+    "name": "추후 입력",
+    "address": "",
+    "description": "추후 입력",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739353625531",
+    "x": "638.49",
+    "y": "451.27",
+    "building": "기예관",
+    "floor": "3층",
+    "category": "기관사무실",
+    "name": "대학방송국 DBS",
+    "address": "",
+    "description": "대학방송국 DBS 사무실",
+    "number": "",
+    "link": "https://www.instagram.com/pride_of_dima/",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739353734170",
+    "x": "640.49",
+    "y": "444.52",
+    "building": "기예관",
+    "floor": "3층",
+    "category": "실습실",
+    "name": "개방편집실1",
+    "address": "30323",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739357813305",
+    "x": "627.98",
+    "y": "435.76",
+    "building": "기예관",
+    "floor": "3층",
+    "category": "학생지원시설",
+    "name": "글로벌라운지/K-WAVE한국어교육원",
+    "address": "30324",
+    "description": "외국인 유학생의 안정적인 교내생활 적응 및 지원을 위해 마련된 공간으로서, 글로벌엘리트학생단 및 글로벌라운지 전담조교 주관 멘토링 프로그램, 간담회, 문화체험 프로그램 등을 운영",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739353922806",
+    "x": "624.82",
+    "y": "442.86",
+    "building": "기예관",
+    "floor": "3층",
+    "category": "학생지원시설",
+    "name": "대학인권센터",
+    "address": "30315",
+    "description": "",
+    "number": "",
+    "link": "https://www.dima.ac.kr/?p=96",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739357994649",
+    "x": "632.98",
+    "y": "440.10",
+    "building": "기예관",
+    "floor": "3층",
+    "category": "학생지원시설",
+    "name": "창업라운지",
+    "address": "30325",
+    "description": "창업라운지는 학생들의 취업과 창업을 위한 공간으로써 다양한 취·창업정보 제공 및 프로그램 운영과 진로고민부터 취·창업상담 서비스를 제공하는 공간",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739354758528",
+    "x": "578.83",
+    "y": "410.90",
+    "building": "덕성관",
+    "floor": "1층",
+    "category": "공연시설",
+    "name": "드라마 스페이스",
+    "address": "50101",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739356558319",
+    "x": "620.83",
+    "y": "403.91",
+    "building": "덕성관",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "개인연습실",
+    "address": "50108",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739357199036",
+    "x": "628.90",
+    "y": "457.89",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "구름다리",
+    "address": "",
+    "description": "지성관 3층↔기예관 1층",
+    "number": "",
+    "link": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739357205340",
+    "x": "588.90",
+    "y": "453.89",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "구름다리",
+    "address": "",
+    "description": "지성관 4층↔기예관 2층",
+    "number": "",
+    "link": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739357207921",
+    "x": "588.90",
+    "y": "425.23",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "구름다리",
+    "address": "",
+    "description": "기예관 3층↔덕성관 2층",
+    "number": "",
+    "link": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739357209907",
+    "x": "596.57",
+    "y": "395.23",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "구름다리",
+    "address": "",
+    "description": "덕성관 3.5층↔삼거리",
+    "number": "",
+    "link": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739357399774",
+    "x": "577.90",
+    "y": "411.07",
+    "building": "덕성관",
+    "floor": "4층",
+    "category": "실습실",
+    "name": "C3 스튜디오",
+    "address": "50402",
+    "description": "Creativity, Convergence, Contents를 의미하는 융합 수업 전용 스튜디오이며 여러 학과 학생들이 기술, 카메라, 음향, 조명, 세트제작, 송출 파트 등으로 나누어 콘텐츠를 제작, 결과물을 DIMA TV에 방영할 수 있도록 갖추어진 실습실",
+    "number": "",
+    "link": "https://www.dima.ac.kr/?p=135",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739357545369",
+    "x": "581.24",
+    "y": "411.15",
+    "building": "덕성관",
+    "floor": "2층",
+    "category": "공연시설",
+    "name": "소극장",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739358292228",
+    "x": "565.65",
+    "y": "799.08",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "A촌",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
     "priority": "1순위"
+  },
+  {
+    "id": "1739358319438",
+    "x": "768.14",
+    "y": "807.27",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "B촌",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "1순위"
+  },
+  {
+    "id": "1739358335861",
+    "x": "717.32",
+    "y": "700.19",
+    "building": "",
+    "floor": "",
+    "category": "",
+    "name": "C촌",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "1순위"
+  },
+  {
+    "id": "1739358778828",
+    "x": "631.30",
+    "y": "479.99",
+    "building": "지성관",
+    "floor": "1층",
+    "category": "편의시설",
+    "name": "Barunson",
+    "address": "",
+    "description": "한울마당 문구점",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739359019117",
+    "x": "632.30",
+    "y": "485.24",
+    "building": "지성관",
+    "floor": "1층",
+    "category": "체육시설",
+    "name": "피트니스 센터",
+    "address": "",
+    "description": "피트니스센터는 학생 및 교직원의 건강증진 및 체력향상을 위한 시설로, 러닝머신 · 파워랙 · 프레스머신 · 케이블머신 · 롱풀머신, 치닝디핑 등 다양한 운동기구를 갖추고 있습니다. 학생회관 1층에 위치하며, 농구, 축구, 배구, 배드민턴을 위한 구기용품과 라켓, 네트 등도 대여가능",
+    "number": "031-670-6536",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739359683418",
+    "x": "560.60",
+    "y": "140.93",
+    "building": "엔터테인먼트관",
+    "floor": "2층",
+    "category": "공연시설",
+    "name": "대공연장",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739359736395",
+    "x": "550.93",
+    "y": "160.60",
+    "building": "엔터테인먼트관",
+    "floor": "1층",
+    "category": "전시시설",
+    "name": "DIMA아트센터",
+    "address": "",
+    "description": "DIMA 아트센터는 기획전과 개인전을 통해 대학 소장품 및 국내외 유수한 작가들의 작품, 전시 월~토 9:00 ~ 18:00, 일요일 및 공휴일 휴관",
+    "number": "031-670-6938",
+    "link": "https://art.dima.ac.kr/",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739359862452",
+    "x": "600.23",
+    "y": "132.26",
+    "building": "예인관",
+    "floor": "B1층",
+    "category": "편의시설",
+    "name": "GS25",
+    "address": "",
+    "description": "외부인 이용가능한 예인관 지하에 위치한 24시간 편의점",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739359932028",
+    "x": "599.23",
+    "y": "126.26",
+    "building": "예인관",
+    "floor": "1층",
+    "category": "편의시설",
+    "name": "기숙사 식당",
+    "address": "",
+    "description": "외부인도 이용 가능한 식당",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739360087827",
+    "x": "572.00",
+    "y": "593.71",
+    "building": "",
+    "floor": "실외",
+    "category": "전시시설",
+    "name": "10주년기념조형물",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739360120064",
+    "x": "586.60",
+    "y": "503.30",
+    "building": "",
+    "floor": "실외",
+    "category": "전시시설",
+    "name": "20주년기념조형물",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "3순위"
+  },
+  {
+    "id": "1739360254929",
+    "x": "504.44",
+    "y": "212.30",
+    "building": "DIMA 종합촬영소",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "1스튜디오",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739360257936",
+    "x": "486.44",
+    "y": "224.97",
+    "building": "DIMA 종합촬영소",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "3스튜디오",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739360260620",
+    "x": "468.78",
+    "y": "237.63",
+    "building": "DIMA 종합촬영소",
+    "floor": "1층",
+    "category": "실습실",
+    "name": "2스튜디오",
+    "address": "",
+    "description": "",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
+  },
+  {
+    "id": "1739360392972",
+    "x": "563.19",
+    "y": "152.30",
+    "building": "엔터테인먼트관",
+    "floor": "1층",
+    "category": "편의시설",
+    "name": "블루포트",
+    "address": "",
+    "description": "1층에 위치한 카페",
+    "number": "",
+    "link": "",
+    "priority": "2순위"
   }
 ]
 
@@ -1089,10 +2206,12 @@ searchInput.addEventListener('input', function() {
         return;
     }
 
+    // name, building, description, address를 검색어에 포함하는지 체크
     const filteredPins = pinsData.filter(pin => 
         pin.name.toLowerCase().includes(searchTerm) ||
         pin.building.toLowerCase().includes(searchTerm) ||
-        pin.description.toLowerCase().includes(searchTerm)
+        pin.description.toLowerCase().includes(searchTerm) ||
+        (pin.address && pin.address.toLowerCase().includes(searchTerm))
     );
 
     searchResults.innerHTML = '';
@@ -1103,11 +2222,12 @@ searchInput.addEventListener('input', function() {
             resultItem.innerHTML = `
                 <div><strong>${pin.name}</strong></div>
                 <div>${pin.building} ${pin.floor}</div>
+                <div>${pin.address}</div>
             `;
             resultItem.addEventListener('click', () => {
                 const pinObj = pins.find(p => 
-                    p.coordinates.x == pin.x && 
-                    p.coordinates.y == pin.y
+                    p.coordinates.x === pin.x && 
+                    p.coordinates.y === pin.y
                 );
 
                 if (pinObj) {
@@ -1118,7 +2238,6 @@ searchInput.addEventListener('input', function() {
 
                 // 검색 결과 유지
                 searchResults.style.display = 'block';
-                // searchInput.value = '';  //
             });
             searchResults.appendChild(resultItem);
         });
@@ -1413,6 +2532,11 @@ function showExitButton() {
         const floorButtonsContainer = exitButton.querySelector('.floor-buttons-container');
         floorButtonsContainer.innerHTML = '';
 
+        // **층 정보가 없을 경우, 컨테이너 초기화 후 종료**
+        if (buildingFloors.length === 0) {
+            return;
+        }
+
         // Keep track of the currently selected floor button
         let selectedButton = null;
 
@@ -1454,6 +2578,13 @@ function showExitButton() {
             
             floorButtonsContainer.appendChild(floorButton);
         });
+
+        // 추가: "1층" 버튼 자동 선택 (존재할 경우)
+        const oneFloorButton = Array.from(floorButtonsContainer.children)
+            .find(btn => btn.innerText.trim() === '1층');
+        if(oneFloorButton){
+            oneFloorButton.click();
+        }
     }
 
     exitButton.style.display = 'block';
@@ -1541,11 +2672,13 @@ function showPinInfoBox(pin, pinData) {
     // 값이 있는 항목만 표시하도록 수정
     const info = [];
     if (pinData.name) info.push(`<strong>이름:</strong> ${pinData.name}`);
+    if (pinData.address) info.push(`<strong>건물번호:</strong> ${pinData.address}`);
+    if (pinData.number) info.push(`<strong>연락처:</strong> ${pinData.number}`);
     if (pinData.building) info.push(`<strong>건물:</strong> ${pinData.building}`);
     if (pinData.floor) info.push(`<strong>층:</strong> ${pinData.floor}`);
     if (pinData.category) info.push(`<strong>카테고리:</strong> ${pinData.category}`);
     if (pinData.description) info.push(`<strong>설명:</strong> ${pinData.description}`);
-    if (pinData.address) info.push(`<strong>주소:</strong> <a href="${pinData.address}" target="_blank">${pinData.address}</a>`);
+    if (pinData.link) info.push(`<strong>주소:</strong> <a href="${pinData.link}" target="_blank">${pinData.link}</a>`);
 
     infoBox.innerHTML += info.join('<br>');
     
@@ -1665,6 +2798,7 @@ mapContainer.addEventListener('touchstart', function(e) {
     isTouching = true;
     
     if (e.touches.length === 1) {
+        e.preventDefault();  // 기본 iOS 확대 방지
         // 싱글 터치 (이동)
         const touch = e.touches[0];
         lastTouchX = touch.clientX;
@@ -1700,6 +2834,11 @@ mapContainer.addEventListener('touchstart', function(e) {
         );
         initialPinchScale = currentScale;
     }
+});
+
+// IOS 터치방지
+document.addEventListener('gesturestart', function (e) {
+    e.preventDefault(); // iOS Safari 기본 확대 방지
 });
 
 // 터치 이동 이벤트 핸들러
@@ -2179,23 +3318,14 @@ function handleUrlPinLocation() {
     const path = window.location.pathname;
     const locationName = decodeURIComponent(path.split('/').pop());
 
-    // 검색어를 소문자로 변환하고 공백으로 분리
-    const searchTerms = locationName.toLowerCase().split(/\s+/);
+    // 검색어를 소문자로 변환
+    const searchTerm = locationName.toLowerCase();
 
-    // 각 검색어에 대해 부분 일치 검사
-    const matchedPin = pinsData.find(pin => {
-        // pin.name과 pin.building이 존재하는 경우에만 검사
-        const nameMatch = pin.name ? searchTerms.some(term => 
-            pin.name.toLowerCase().includes(term)
-        ) : false;
-        
-        const buildingMatch = pin.building ? searchTerms.some(term => 
-            pin.building.toLowerCase().includes(term)
-        ) : false;
-
-        return nameMatch || buildingMatch;
-    });
-
+    // includes()를 사용하여 부분 문자열 검색
+    const matchedPin = pinsData.find(pin => 
+        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
+        (pin.building && pin.building.toLowerCase().includes(searchTerm))
+    );
 
     if (matchedPin) {
         // 모든 핀을 숨김
