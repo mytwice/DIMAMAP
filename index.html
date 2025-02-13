@@ -196,13 +196,13 @@
         /* 2순위 핀 스타일 - 원형 */
         .pin-secondary {
             position: absolute; /* Ensure absolute positioning */
-            width: 1px; /* Fixed width */
-            height: 1px; /* Fixed height */
+            width: 10px; /* Fixed width */
+            height: 10px; /* Fixed height */
             background-color: #E91E63; /* Pink color */
             border-radius: 50%; /* Circular shape */
             border: 1px solid white; /* White border */
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow */
-            transform: translate(-50%, -50%); /* Center the pin */
+            transform: translate(-50%, -50%) scale(0.26);; /* Center the pin */
             z-index: 1000; /* Ensure it's above other elements */
         }
 
@@ -747,6 +747,7 @@
     <div class="popup-content">
         <span class="close">&times;</span>
         <h2>제보/정보</h2>
+        <p style="word-break: keep-all;">정보는 대학 홈페이지를 기반으로 하며 잘못된 정보가 있을 수 있습니다</p>
         <p style="word-break: keep-all;">잘못된 정보나 추가할 사항이 있을 경우에 언제든 연락주세요!</p>
         <p>제작 : I DIMA 프로젝트</p>
         <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
@@ -2577,6 +2578,13 @@ function showExitButton() {
             
             floorButtonsContainer.appendChild(floorButton);
         });
+
+        // 추가: "1층" 버튼 자동 선택 (존재할 경우)
+        const oneFloorButton = Array.from(floorButtonsContainer.children)
+            .find(btn => btn.innerText.trim() === '1층');
+        if(oneFloorButton){
+            oneFloorButton.click();
+        }
     }
 
     exitButton.style.display = 'block';
