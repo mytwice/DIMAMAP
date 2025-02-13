@@ -3316,17 +3316,20 @@ function setupFilters() {
 
 function handleUrlPinLocation() {
     const path = window.location.pathname;
-    const locationName = decodeURIComponent(path.split('/').pop());
-    // 검색어를 소문자로 변환 (예: "야외공연장")
+    const locationName = decodeURIComponent(path.split('/').pop()).trim();
     const searchTerm = locationName.toLowerCase();
+    console.log("URL에서 추출한 위치:", locationName, "검색어:", searchTerm);
 
-    // pin.name이나 pin.building에 searchTerm이 부분 포함되어 있는지 검사합니다.
-    const matchedPin = pinsData.find(pin => 
-        (pin.name && pin.name.toLowerCase().includes(searchTerm)) || 
-        (pin.building && pin.building.toLowerCase().includes(searchTerm))
-    );
+    // name, building, address 필드 모두에서 부분 문자열 검색
+    const matchedPin = pinsData.find(pin => {
+        const name = pin.name ? pin.name.toLowerCase() : "";
+        const building = pin.building ? pin.building.toLowerCase() : "";
+        const address = pin.address ? pin.address.toLowerCase() : "";
+        return name.includes(searchTerm) || building.includes(searchTerm) || address.includes(searchTerm);
+    });
 
     if (matchedPin) {
+        console.log("매칭된 핀:", matchedPin);
         // 모든 핀 숨기기
         pins.forEach(p => {
             p.pin.style.display = 'none';
@@ -3367,7 +3370,7 @@ function handleUrlPinLocation() {
             
             viewAllButton.addEventListener('click', () => {
                 // 모든 핀 표시 및 강조 효과 제거
-                pinObj.pin.style.transform = 'translate(-50%, -50%) scale(0.26)';
+                pinObj.pin.style.transform = 'translate(-50%, -95%)';
                 pinObj.pin.style.filter = 'none';
                 filterPins2(); // 1순위와 3순위 핀 표시
                 
@@ -3381,6 +3384,7 @@ function handleUrlPinLocation() {
             document.body.appendChild(viewAllButton);
         }
     } else {
+        console.log("매칭되는 핀이 없습니다.");
         alert(`"${locationName}"에 해당하는 위치를 찾을 수 없습니다.`);
     }
 }
