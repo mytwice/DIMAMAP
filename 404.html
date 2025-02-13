@@ -3395,6 +3395,15 @@ function handleUrlPinLocation() {
 }
 
 
+document.addEventListener('DOMContentLoaded', function() {
+    const pathParts = window.location.pathname.split('/');
+    const locationName = pathParts[pathParts.length - 1];
+    
+    if (locationName && locationName !== 'DIMAMAP') {
+        setTimeout(handleUrlPinLocation, 500);
+    }
+});
+
 // DOM이 로드되면 실행
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
