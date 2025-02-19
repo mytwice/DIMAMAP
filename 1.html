@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Install</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="theme-color" content="#000000">
+
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #installBtn { padding: 10px 20px; font-size: 16px; cursor: pointer; display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>PWA Install Demo</h1>
+    <button id="installBtn">Install PWA</button>
+
+    <script>
+        // 🟢 Service Worker 등록 (정적 파일로 등록)
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js").then(() => {
+                console.log("✅ Service Worker 등록 완료");
+            }).catch((error) => {
+                console.error("❌ Service Worker 등록 실패:", error);
+            });
+        }
+
+        // 🟢 PWA 설치 버튼 처리
+        let deferredPrompt;
+        const installBtn = document.getElementById("installBtn");
+
+        window.addEventListener("beforeinstallprompt", (event) => {
+            event.preventDefault();
+            deferredPrompt = event;
+            installBtn.style.display = "block";
+        });
+
+        installBtn.addEventListener("click", () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === "accepted") {
+                        console.log("PWA 설치됨");
+                    }
+                    deferredPrompt = null;
+                    installBtn.style.display = "none";
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
