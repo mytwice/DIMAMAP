@@ -2448,40 +2448,50 @@ function createPin(x, y, details = {}) {
     // 데스크톱 클릭 이벤트
     pin.addEventListener('click', handlePinInteraction);
     
-    // 단일 터치일 때만 이벤트 전파 차단
+    // 모바일 터치 이벤트
     pin.addEventListener('touchstart', function(e) {
-        if (e.touches.length === 1) {
-            e.stopPropagation();
-            // 터치 시작 시간 및 좌표 저장
-            this.touchStartTime = new Date().getTime();
-            this.touchStartX = e.touches[0].clientX;
-            this.touchStartY = e.touches[0].clientY;
-            
-            // 핀 라벨 표시 (단일 터치 시)
-            pinLabel.style.display = 'block';
-            setTimeout(() => {
-                pinLabel.style.display = 'none';
-            }, 2000);
-        }
+        e.stopPropagation();  // 지도의 터치 이벤트 중지
+        
+        // 터치 시작 시간 저장
+        this.touchStartTime = new Date().getTime();
+        this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
     });
 
-    pin.addEventListener('touchend', function(e) {
-        if (e.changedTouches.length === 1) {
-            // 단일 터치인 경우에만 핀 정보 표시 처리
-            e.stopPropagation();
-            const touchEndTime = new Date().getTime();
-            const touchTime = touchEndTime - this.touchStartTime;
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            const touchDistance = Math.hypot(
-                touchEndX - this.touchStartX,
-                touchEndY - this.touchStartY
-            );
-            if (touchTime < 500 && touchDistance < 10) {
-                handlePinInteraction(e);
-            }
-        }
-    });
+    // 핀 터치 이벤트: 단일 터치일 때만 핀 동작 실행
+pin.addEventListener('touchstart', function(e) {
+    // 멀티터치이면 이벤트 전파 차단하지 않고 그대로 둡니다.
+    if (e.touches.length > 1) return;
+    
+    e.stopPropagation();
+    // 터치 시작 시간 및 좌표 저장
+    this.touchStartTime = new Date().getTime();
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+    
+    // 핀 라벨 표시
+    pinLabel.style.display = 'block';
+    setTimeout(() => {
+        pinLabel.style.display = 'none';
+    }, 2000);
+});
+
+pin.addEventListener('touchend', function(e) {
+    // 멀티터치 종료인 경우 무시
+    if (e.changedTouches.length > 1) return;
+    
+    e.stopPropagation();
+    const touchEndTime = new Date().getTime();
+    const touchTime = touchEndTime - this.touchStartTime;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const touchDistance = Math.hypot(touchEndX - this.touchStartX, touchEndY - this.touchStartY);
+    
+    // 짧은 터치(500ms 이하)와 작은 이동 거리(10px 이하)인 경우만 핀 인터랙션 실행
+    if (touchTime < 500 && touchDistance < 10) {
+        handlePinInteraction(e);
+    }
+});
 
     mapContainer.appendChild(pin);
     pins.push({
