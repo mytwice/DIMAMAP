@@ -2370,6 +2370,10 @@ function animateScroll(targetX, targetY) {
 function createPin(x, y, details = {}) {
     const pin = document.createElement('div');
     pin.className = 'pin'; // 기본 클래스
+
+    pin.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+    });
     
     // 우선순위에 따라 추가 클래스 적용
     if (details.priority === "1순위") {
@@ -2458,40 +2462,24 @@ function createPin(x, y, details = {}) {
         this.touchStartY = e.touches[0].clientY;
     });
 
-    // 핀 터치 이벤트: 단일 터치일 때만 핀 동작 실행
-pin.addEventListener('touchstart', function(e) {
-    // 멀티터치이면 이벤트 전파 차단하지 않고 그대로 둡니다.
-    if (e.touches.length > 1) return;
-    
-    e.stopPropagation();
-    // 터치 시작 시간 및 좌표 저장
-    this.touchStartTime = new Date().getTime();
-    this.touchStartX = e.touches[0].clientX;
-    this.touchStartY = e.touches[0].clientY;
-    
-    // 핀 라벨 표시
-    pinLabel.style.display = 'block';
-    setTimeout(() => {
-        pinLabel.style.display = 'none';
-    }, 2000);
-});
+    pin.addEventListener('touchend', function(e) {
+        e.stopPropagation();  // 지도의 터치 이벤트 중지
+        
+        // 터치 종료 시간과 이동 거리 계산
+        const touchEndTime = new Date().getTime();
+        const touchTime = touchEndTime - this.touchStartTime;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchDistance = Math.hypot(
+            touchEndX - this.touchStartX,
+            touchEndY - this.touchStartY
+        );
 
-pin.addEventListener('touchend', function(e) {
-    // 멀티터치 종료인 경우 무시
-    if (e.changedTouches.length > 1) return;
-    
-    e.stopPropagation();
-    const touchEndTime = new Date().getTime();
-    const touchTime = touchEndTime - this.touchStartTime;
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const touchDistance = Math.hypot(touchEndX - this.touchStartX, touchEndY - this.touchStartY);
-    
-    // 짧은 터치(500ms 이하)와 작은 이동 거리(10px 이하)인 경우만 핀 인터랙션 실행
-    if (touchTime < 500 && touchDistance < 10) {
-        handlePinInteraction(e);
-    }
-});
+        // 짧은 터치(500ms 이하)와 작은 이동 거리(10px 이하)일 때만 핀 정보 표시
+        if (touchTime < 500 && touchDistance < 10) {
+            handlePinInteraction(e);
+        }
+    });
 
     mapContainer.appendChild(pin);
     pins.push({
