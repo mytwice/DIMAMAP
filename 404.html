@@ -2370,10 +2370,6 @@ function animateScroll(targetX, targetY) {
 function createPin(x, y, details = {}) {
     const pin = document.createElement('div');
     pin.className = 'pin'; // 기본 클래스
-
-    pin.addEventListener('touchmove', (e) => {
-        e.stopPropagation();
-    });
     
     // 우선순위에 따라 추가 클래스 적용
     if (details.priority === "1순위") {
@@ -2829,40 +2825,31 @@ let exitButton = null;
 
 // 터치 시작 이벤트 핸들러
 mapContainer.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    isTouching = true;
+    // 만약 터치가 핀 요소에서 시작되었다면 처리하지 않음
+    if (e.target.closest('.pin')) return;
     
+    e.preventDefault();
     if (e.touches.length === 1) {
-        e.preventDefault();  // 기본 iOS 확대 방지
-        // 싱글 터치 (이동)
         const touch = e.touches[0];
         lastTouchX = touch.clientX;
         lastTouchY = touch.clientY;
         
-        // 더블 탭 확인
         const currentTime = new Date().getTime();
         const tapLength = currentTime - lastTapTime;
         
         if (tapLength < 300 && tapLength > 0) {
             // 더블 탭 확대
-            const touch = e.touches[0];
             const targetScale = currentScale === mapConfig.maxScale ? 
                 mapConfig.minScale : Math.min(currentScale * 2, mapConfig.maxScale);
-            
             smoothZoom(targetScale, touch.clientX, touch.clientY);
         }
-        
         lastTapTime = currentTime;
-        
     } else if (e.touches.length === 2) {
-        // 멀티 터치 (핀치 줌)
+        // (핀치 줌 처리 로직 유지)
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
-        
-        // 핀치 시작 지점 저장 (두 손가락의 중심점)
         pinchStartX = (touch1.clientX + touch2.clientX) / 2;
         pinchStartY = (touch1.clientY + touch2.clientY) / 2;
-        
         initialTouchDistance = Math.hypot(
             touch2.clientX - touch1.clientX,
             touch2.clientY - touch1.clientY
@@ -2870,6 +2857,7 @@ mapContainer.addEventListener('touchstart', function(e) {
         initialPinchScale = currentScale;
     }
 });
+
 
 // IOS 터치방지
 document.addEventListener('gesturestart', function (e) {
