@@ -15,6 +15,30 @@
             overflow: hidden; /* 페이지에서 스크롤바를 숨깁니다 */
         }
 
+        /* 스크롤바 전체 영역 */
+        ::-webkit-scrollbar {
+            width: 18px;  /* 세로 스크롤바 너비 */
+            height: 15px; /* 가로 스크롤바 높이 */
+        }
+
+        /* 스크롤바 배경 */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; /* 밝은 회색 */
+            border-radius: 10px;
+        }
+
+        /* 스크롤바 막대 (드래그 가능) */
+        ::-webkit-scrollbar-thumb {
+            background: #e155b5; /* 핑크 계열 색상 */
+            border-radius: 35px;
+            border: 2px solid #f1f1f1; /* 배경과 조화롭게 */
+        }
+
+        /* 스크롤바 호버 효과 */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c64aa3; /* 더 진한 핑크 */
+        }
+
         #map-wrapper {
             width: 100%;
             height: 100%;
@@ -724,9 +748,9 @@
     </div>
 
     <nav class="mobile-nav">
-        <a href="https://mytwice.github.io/DIMAMAP/" class="nav-item">
+        <a href="https://mytwice.github.io/I-DIMA/" class="nav-item">
             <span>🏠</span>
-            <span>홈</span>
+            <span>I-DIMA 홈</span>
         </a>
         <a href="#" class="nav-item">
             <span>🔍</span>
@@ -747,8 +771,9 @@
     <div class="popup-content">
         <span class="close">&times;</span>
         <h2>제보/정보</h2>
-        <p style="word-break: keep-all;">정보는 대학 홈페이지를 기반으로 하며 잘못된 정보가 있을 수 있습니다</p>
+        <p style="word-break: keep-all;">정보는 대학 홈페이지와 표지판을 기반으로 하며 잘못된 정보가 있을 수 있습니다</p>
         <p style="word-break: keep-all;">잘못된 정보나 추가할 사항이 있을 경우에 언제든 연락주세요!</p>
+        <p>리스트 업데이트 : 2025.02.20</p>
         <p>제작 : I DIMA 프로젝트</p>
         <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
     </div>
@@ -962,7 +987,7 @@ const pinsData = [
     "floor": "",
     "category": "정류장",
     "name": "원룸촌 정류장",
-    "description": "4402 하차외 내부 셔틀버스를 이용할 ㅅ ㅜ있는 정류장",
+    "description": "4402 하차외 내부 셔틀버스를 이용할 수 있는 정류장",
     "number": "",
     "address": "",
     "priority": "3순위"
@@ -2396,61 +2421,73 @@ function createPin(x, y, details = {}) {
         }, 2000); // 2초 후 자동 숨김
     });
 
-    // 클릭 이벤트 핸들러
+    let lastPrimaryPinPosition = null;
+
     const handlePinInteraction = function(e) {
-        e.stopPropagation();
+    e.stopPropagation();
 
-        // 1순위 핀을 클릭했을 때 안내창을 뜨지 않게 처리
-        if (details.priority === "1순위") {
-            showPriorityPins(details.building); // 같은 건물의 2순위 핀을 표시
-            showExitButton(); // Exit button appears when 2순위 pins are shown
-            if (activeInfoBox) {
-                activeInfoBox.style.display = 'none';
-            }
-        } else {
-            // 2순위 핀만 안내창을 표시
-            showPinInfoBox(pin, details);
+    if (details.priority === "1순위") {
+        lastPrimaryPinPosition = { x: pin.offsetLeft, y: pin.offsetTop }; // 1순위 핀 위치 저장
+        moveToPin(pin); // 해당 위치로 확대 이동
+        showPriorityPins(details.building);
+        showExitButton();
+        // 원하는 확대 레벨 설정
+        const targetScale = 6;
+        // 화면(맵 wrapper)의 크기를 가져옵니다.
+        const wrapperWidth = mapWrapper.offsetWidth;
+        const wrapperHeight = mapWrapper.offsetHeight;
+        // 부드러운 확대 및 중앙 이동: 중앙 좌표를 기준으로 smoothZoom 호출
+        smoothZoom(targetScale, wrapperWidth / 2, wrapperHeight / 2);
+        if (activeInfoBox) {
+            activeInfoBox.style.display = 'none';
         }
-    };
-
+    } else {
+        showPinInfoBox(pin, details);
+    }
+};
     // 데스크톱 클릭 이벤트
     pin.addEventListener('click', handlePinInteraction);
     
-    // 모바일 터치 이벤트
-    pin.addEventListener('touchstart', function(e) {
-        e.stopPropagation();  // 지도의 터치 이벤트 중지
-        
-        // 터치 시작 시간 저장
-        this.touchStartTime = new Date().getTime();
-        this.touchStartX = e.touches[0].clientX;
-        this.touchStartY = e.touches[0].clientY;
-    });
+// 핀 라벨 표시용 터치 이벤트
+pin.addEventListener('touchstart', (e) => {
+  // 단일 터치일 때만 이벤트 전파 차단
+  if (e.touches.length === 1) {
+    e.stopPropagation();
+    pinLabel.style.display = 'block';
+    setTimeout(() => {
+      pinLabel.style.display = 'none';
+    }, 2000);
+  }
+});
 
-    pin.addEventListener('touchend', function(e) {
-        e.stopPropagation();  // 지도의 터치 이벤트 중지
-        
-        // 터치 종료 시간과 이동 거리 계산
-        const touchEndTime = new Date().getTime();
-        const touchTime = touchEndTime - this.touchStartTime;
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
-        const touchDistance = Math.hypot(
-            touchEndX - this.touchStartX,
-            touchEndY - this.touchStartY
-        );
+// 터치 시작 시 시간 및 좌표 기록
+pin.addEventListener('touchstart', function(e) {
+  if (e.touches.length === 1) {
+    e.stopPropagation();
+    this.touchStartTime = new Date().getTime();
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+  }
+});
 
-        // 짧은 터치(500ms 이하)와 작은 이동 거리(10px 이하)일 때만 핀 정보 표시
-        if (touchTime < 500 && touchDistance < 10) {
-            handlePinInteraction(e);
-        }
-    });
-
-    mapContainer.appendChild(pin);
-    pins.push({
-        pin,
-        coordinates: { x, y },
-        ...details
-    });
+// 터치 종료 시 짧은 터치 감지 후 핀 인터랙션 실행
+pin.addEventListener('touchend', function(e) {
+  // 단일 터치 종료일 때만 전파 차단
+  if (e.changedTouches.length === 1) {
+    e.stopPropagation();
+    const touchEndTime = new Date().getTime();
+    const touchTime = touchEndTime - this.touchStartTime;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const touchDistance = Math.hypot(
+      touchEndX - this.touchStartX,
+      touchEndY - this.touchStartY
+    );
+    if (touchTime < 500 && touchDistance < 10) {
+      handlePinInteraction(e);
+    }
+  }
+});
 }
 
 // 1순위 핀을 클릭했을 때, 해당 건물에 속하는 2순위 핀 보이기
@@ -2630,7 +2667,6 @@ function showOnlyFirstPriorityPins() {
         }
     });
 }
-
 
 // 핀 정보창 표시 함수
 function showPinInfoBox(pin, pinData) {
