@@ -2875,6 +2875,7 @@ document.addEventListener('gesturestart', function (e) {
 
 // 터치 이동 이벤트 핸들러
 mapContainer.addEventListener('touchmove', function(e) {
+    if (e.target.closest('.pin')) return;  // 핀 영역이면 지도 이동 처리 무시
     e.preventDefault();
     
     if (!isTouching) return;
