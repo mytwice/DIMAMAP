@@ -2448,46 +2448,47 @@ function createPin(x, y, details = {}) {
     // 데스크톱 클릭 이벤트
     pin.addEventListener('click', handlePinInteraction);
     
-// 핀 라벨 표시용 터치 이벤트
-pin.addEventListener('touchstart', (e) => {
-  // 단일 터치일 때만 이벤트 전파 차단
-  if (e.touches.length === 1) {
-    e.stopPropagation();
-    pinLabel.style.display = 'block';
-    setTimeout(() => {
-      pinLabel.style.display = 'none';
-    }, 2000);
-  }
-});
+    // 단일 터치일 때만 이벤트 전파 차단
+    pin.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+            e.stopPropagation();
+            // 터치 시작 시간 및 좌표 저장
+            this.touchStartTime = new Date().getTime();
+            this.touchStartX = e.touches[0].clientX;
+            this.touchStartY = e.touches[0].clientY;
+            
+            // 핀 라벨 표시 (단일 터치 시)
+            pinLabel.style.display = 'block';
+            setTimeout(() => {
+                pinLabel.style.display = 'none';
+            }, 2000);
+        }
+    });
 
-// 터치 시작 시 시간 및 좌표 기록
-pin.addEventListener('touchstart', function(e) {
-  if (e.touches.length === 1) {
-    e.stopPropagation();
-    this.touchStartTime = new Date().getTime();
-    this.touchStartX = e.touches[0].clientX;
-    this.touchStartY = e.touches[0].clientY;
-  }
-});
+    pin.addEventListener('touchend', function(e) {
+        if (e.changedTouches.length === 1) {
+            // 단일 터치인 경우에만 핀 정보 표시 처리
+            e.stopPropagation();
+            const touchEndTime = new Date().getTime();
+            const touchTime = touchEndTime - this.touchStartTime;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const touchDistance = Math.hypot(
+                touchEndX - this.touchStartX,
+                touchEndY - this.touchStartY
+            );
+            if (touchTime < 500 && touchDistance < 10) {
+                handlePinInteraction(e);
+            }
+        }
+    });
 
-// 터치 종료 시 짧은 터치 감지 후 핀 인터랙션 실행
-pin.addEventListener('touchend', function(e) {
-  // 단일 터치 종료일 때만 전파 차단
-  if (e.changedTouches.length === 1) {
-    e.stopPropagation();
-    const touchEndTime = new Date().getTime();
-    const touchTime = touchEndTime - this.touchStartTime;
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const touchDistance = Math.hypot(
-      touchEndX - this.touchStartX,
-      touchEndY - this.touchStartY
-    );
-    if (touchTime < 500 && touchDistance < 10) {
-      handlePinInteraction(e);
-    }
-  }
-});
+    mapContainer.appendChild(pin);
+    pins.push({
+        pin,
+        coordinates: { x, y },
+        ...details
+    });
 }
 
 // 1순위 핀을 클릭했을 때, 해당 건물에 속하는 2순위 핀 보이기
