@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VZNJWS2EY3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-VZNJWS2EY3');
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DIMA MAP</title>
@@ -737,7 +746,7 @@
     </div>
 
     <div class="nav-logo">
-        <span class="logo-text">위성 제공 ㅣ 국토지리정보원</span>
+        <span class="logo-text">3월 1주 전 데이터 고도화 예정 / 위성 제공 ㅣ 국토지리정보원</span>
         <img src="sub0705_01_Open_Mark_01.jpg" alt="국토지리정보원" class="logo-img">
     </div>
 
@@ -756,9 +765,9 @@
             <span>🔍</span>
             <span>건물</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="https://www.instagram.com/p/DF4aY0eRXTu/" class="nav-item">
             <span>📍</span>
-            <span>안전지도</span>
+            <span>원룸촌지도</span>
         </a>
         <a href="#" class="nav-item" id="openPopup">
             <span>ℹ️</span>
@@ -773,9 +782,10 @@
         <h2>제보/정보</h2>
         <p style="word-break: keep-all;">정보는 대학 홈페이지와 표지판을 기반으로 하며 잘못된 정보가 있을 수 있습니다</p>
         <p style="word-break: keep-all;">잘못된 정보나 추가할 사항이 있을 경우에 언제든 연락주세요!</p>
+        <p>원활한 운영을 위해 네이버, 구글 애널리틱스로 방문자 수 등을 집계하고 있습니다</p>
         <p>리스트 업데이트 : 2025.02.20</p>
         <p>제작 : I DIMA 프로젝트</p>
-        <a href="https://mytwice.github.io/I-DIMA/" target="_blank">사이트 방문하기</a>
+        <a href="https://mytwice.github.io/I-DIMA/service" target="_blank">(이용약관ㅣ개인정보처리방침)</a>
     </div>
 </div>
 </body>
@@ -2825,7 +2835,6 @@ let exitButton = null;
 
 // 터치 시작 이벤트 핸들러
 mapContainer.addEventListener('touchstart', function(e) {
-    if (e.target.closest('.pin')) return;  // 핀 영역이면 지도 이벤트 처리 무시
     e.preventDefault();
     isTouching = true;
     
@@ -2875,7 +2884,6 @@ document.addEventListener('gesturestart', function (e) {
 
 // 터치 이동 이벤트 핸들러
 mapContainer.addEventListener('touchmove', function(e) {
-    if (e.target.closest('.pin')) return;  // 핀 영역이면 지도 이동 처리 무시
     e.preventDefault();
     
     if (!isTouching) return;
